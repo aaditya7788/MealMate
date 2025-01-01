@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import GoogleIcon from '../../Icons/GoogleIcon';
-import { validateEmail, validatePassword, handleSignUp } from '../../backend/functions/Auth/authFunctions';
+import { validateEmail, validatePassword, validateName, handleSignUp } from '../../backend/functions/Auth/authFunctions';
 
 const SignUpScreen = () => {
   const navigation = useNavigation();
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [nameError, setNameError] = useState('');
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [firebaseError, setFirebaseError] = useState('');
@@ -30,7 +32,16 @@ const SignUpScreen = () => {
       </TouchableOpacity>
       
       <Text style={styles.orText}>or</Text>
-      
+
+      <TextInput
+        style={styles.input}
+        placeholder="NAME"
+        placeholderTextColor="#999"
+        value={name}
+        onChangeText={(text) => validateName(text, setName, setNameError)}
+      />
+      {nameError ? <Text style={styles.ErrorText}>{nameError}</Text> : null}
+
       <TextInput
         style={styles.input}
         placeholder="EMAIL"
@@ -52,7 +63,7 @@ const SignUpScreen = () => {
       
       <TouchableOpacity 
         style={styles.createAccountButton} 
-        onPress={() => handleSignUp(email, password, emailError, passwordError, setFirebaseError, navigation)}
+        onPress={() => handleSignUp(name, email, password, nameError, emailError, passwordError, setFirebaseError, navigation)}
       >
         <Text style={styles.createAccountButtonText}>Sign Up Now</Text>
       </TouchableOpacity>

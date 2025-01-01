@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState} from 'react';
+import { BackHandler } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import GoogleIcon from '../../Icons/GoogleIcon';
 import { validateEmail, validatePassword, handleLogin } from '../../backend/functions/Auth/authFunctions';
-
 const LoginScreen = () => {
   const navigation = useNavigation();
   const [email, setEmail] = useState('');
@@ -11,6 +12,15 @@ const LoginScreen = () => {
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [firebaseError, setFirebaseError] = useState('');
+
+    useFocusEffect(
+      React.useCallback(() => {
+        const onBackPress = () => true; // Prevent default back button behavior
+        BackHandler.addEventListener('hardwareBackPress', onBackPress);
+        return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+      }, [])
+    );
+
 
   return (
     <View style={styles.container}>
@@ -62,7 +72,7 @@ const LoginScreen = () => {
       <TouchableOpacity>
         <Text 
           style={styles.linkText}  
-          onPress={() => navigation.navigate('SignUp')}
+          onPress={() => navigation.navigate('Signup')}
         >
           Create an account
         </Text>

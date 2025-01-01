@@ -12,7 +12,7 @@ const WelcomeScreen = () => {
     useEffect(() => {
         ring1padding.value = withSpring(35); // Adjusted directly for simplicity
         ring2padding.value = withSpring(35);
-        setTimeout(() => navigation.navigate('signup'), 2500);
+        setTimeout(() => navigation.navigate('Signup'), 2500);
     }, []);
 
     const animatedRing1Style = useAnimatedStyle(() => ({

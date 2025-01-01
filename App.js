@@ -1,4 +1,5 @@
 import React from 'react';
+import { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -11,7 +12,7 @@ import LoginScreen from './frontend/Auth/LoginScreen';
 import SignUpScreen from './frontend/Auth/SignUpScreen';
 import DetailScreen from './frontend/screens/DetailScreen';
 import MealPlannerScreen from './frontend/screens/MealPlannerScreen';
-
+import { getAuthData } from './backend/LocalStorage/auth_store';
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
@@ -27,10 +28,31 @@ function MainTabs() {
 
 
 export default function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(null);  // Initially null to indicate loading
+  const [loading, setLoading] = useState(true);  // Loading state to track when the check is complete
+
+  useEffect(() => {
+    // Check if authentication data exists in AsyncStorage
+    getAuthData().then((data) => {
+      if (data && data.email && data.password) {
+        console.log(data.email, data.password);
+        setIsAuthenticated(true);  // If auth data exists, set authenticated state
+      } else {
+        setIsAuthenticated(false);  // Otherwise, user is not authenticated
+      }
+      setLoading(false);  // Set loading to false once the check is done
+    });
+  }, []);
+
+  // Show a loading screen or a placeholder until authentication check is complete
+  if (loading) {
+    return null;  // or return a loading spinner/indicator
+  }
+
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="Welcome"
+        initialRouteName={isAuthenticated ? "MainApp" : "Welcome"}  // Navigate to MainApp if authenticated
         screenOptions={stackNavigatorScreenOptions}
       >
         <Stack.Screen name="Welcome" component={WelcomeScreen} />
@@ -41,8 +63,8 @@ export default function App() {
         />
         <Stack.Screen name="Details" component={DetailScreen} />
         <Stack.Screen name="Search" component={SearchScreen} />
-        <Stack.Screen name="login" component={LoginScreen} />
-        <Stack.Screen name="signup" component={SignUpScreen} />
+        <Stack.Screen name="Login" component={LoginScreen} />
+        <Stack.Screen name="Signup" component={SignUpScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

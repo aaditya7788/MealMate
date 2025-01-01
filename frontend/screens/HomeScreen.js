@@ -2,14 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { BackHandler, ScrollView, StyleSheet, TextInput, TouchableOpacity, Pressable, View, Text, Image } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
-import { hp,wp,getColumnCount} from '../../helpers/common';
-import { BellIcon, MagnifyingGlassIcon } from 'react-native-heroicons/outline';
+import { hp, wp, getColumnCount } from '../../helpers/common';
+import { BellIcon, MagnifyingGlassIcon, PowerIcon } from 'react-native-heroicons/outline';
 import { fetchCategories, fetchRecipes } from '../../Api/request';
 import MasonryList from '@react-native-seoul/masonry-list';
-import Animated, { BounceInRight, FadeInDown, FadeInRight, FadeInUp } from 'react-native-reanimated';
+import Animated, { FadeInRight, FadeInDown } from 'react-native-reanimated';
 import { useNavigation } from '@react-navigation/native';
-import Skeleton from 'react-loading-skeleton';
-import 'react-loading-skeleton/dist/skeleton.css';
+import { clearAuthData, getAuthData } from '../../backend/LocalStorage/auth_store';
 
 function HomeScreen({ backgroundColor = '#fff', homeTextColor = '#fbbf24' }) {
   const [selectedCategory, setSelectedCategory] = useState('Vegetarian');
@@ -18,25 +17,38 @@ function HomeScreen({ backgroundColor = '#fff', homeTextColor = '#fbbf24' }) {
   const [error, setError] = useState(null);
   const [loadingCategories, setLoadingCategories] = useState(true);
   const [loadingRecipes, setLoadingRecipes] = useState(true);
+  const [userData, setUserData] = useState(null);
 
-  const ColumnCount = getColumnCount();
   const navigation = useNavigation();
+  const ColumnCount = getColumnCount();
+
+  const handleBellPress = async () => {
+    try {
+      // Clear the authentication data
+      await clearAuthData();
+      // Navigate to the login or other screen after clearing data
+      navigation.navigate('Login');  // Replace with your desired route
+    } catch (error) {
+      console.error('Error clearing data:', error);
+    }
+  };
+  // Load user data on mount
+  useEffect(() => {
+    const loadUserData = async () => {
+      const data = await getAuthData();
+      setUserData(data);
+    };
+    loadUserData();
+  }, []);
 
   // Fetch categories on component mount
   useEffect(() => {
     const loadCategories = async () => {
       try {
         const categoryData = await fetchCategories();
-        let filteredCategories = categoryData.categories.filter(
-          (category) => category.strCategory !== 'Beef' && category.strCategory !== 'Lamb' && category.strCategory !== 'Pork'
-        );
-
-        // Sort categories to place "Vegetarian" and "Vegan" first
-        filteredCategories = filteredCategories.sort((a, b) => {
-          if (a.strCategory === 'Vegetarian') return -1;
-          if (b.strCategory === 'Vegetarian') return 1;
-          return 0;
-        });
+        const filteredCategories = categoryData.categories
+          .filter((category) => !['Beef', 'Lamb', 'Pork'].includes(category.strCategory))
+          .sort((a, b) => (a.strCategory === 'Vegetarian' ? -1 : b.strCategory === 'Vegetarian' ? 1 : 0));
 
         setCategories(filteredCategories);
       } catch (error) {
@@ -69,33 +81,13 @@ function HomeScreen({ backgroundColor = '#fff', homeTextColor = '#fbbf24' }) {
     loadRecipes();
   }, [selectedCategory]);
 
+  // Handle back button press to prevent default behavior
   useFocusEffect(
     React.useCallback(() => {
-      const onBackPress = () => {
-        // Prevent default back button behavior
-        return true;
-      };
-
+      const onBackPress = () => true; // Prevent default back button behavior
       BackHandler.addEventListener('hardwareBackPress', onBackPress);
-
       return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
     }, [])
-  );
-
-  const renderCategorySkeleton = () => (
-    <View style={styles.categoryItem}>
-      <View style={styles.categoryImageContainer}>
-        <Skeleton circle width={hp(8)} height={hp(8)} />
-      </View>
-      <Skeleton width={hp(10)} height={hp(2)} />
-    </View>
-  );
-
-  const renderRecipeSkeleton = () => (
-    <View style={styles.recipeCard}>
-      <Skeleton width="100%" height={hp(25)} style={{ borderRadius: 35 }} />
-      <Skeleton width="80%" height={hp(2)} style={{ marginTop: 8, alignSelf: 'center' }} />
-    </View>
   );
 
   if (error) {
@@ -104,34 +96,29 @@ function HomeScreen({ backgroundColor = '#fff', homeTextColor = '#fbbf24' }) {
 
   return (
     <View style={[styles.container, { backgroundColor }]}>
-      <StatusBar style='dark' />
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollViewContent}
-      >
-        {/* Avatar and bell icon */}
+      <StatusBar style="dark" />
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollViewContent}>
+        {/* Avatar and Bell Icon */}
         <View style={styles.avatarContainer}>
           <Image source={require('../../assets/images/avatar.png')} style={styles.avatar} />
-          <BellIcon size={hp(4)} color="gray" />
+          <PowerIcon size={hp(4)} color="gray" onPress={handleBellPress} />
         </View>
 
-        {/* Greeting and punchline */}
+        {/* Greeting Section */}
         <View style={styles.greetingContainer}>
-          <Text style={styles.helloText}>Hello Adi!</Text>
-          <View>
-            <Text style={styles.mainText}>Make your own food</Text>
-          </View>
+          <Text style={styles.helloText}>{userData ? userData.displayName : 'Loading...'}</Text>
           <Text style={styles.mainText}>
-            stay at <Text style={[styles.highlightText, { color: homeTextColor }]}>home</Text>
+            Make your own food, stay at <Text style={[styles.highlightText, { color: homeTextColor }]}>home</Text>
           </Text>
         </View>
 
-        {/* Search bar */}
+        {/* Search Bar */}
         <View style={styles.searchContainer}>
-          <TextInput onPress={()=>navigation.navigate('Search')}
+          <TextInput
             placeholder="Search for recipes"
-            placeholderTextColor={'gray'}
+            placeholderTextColor="gray"
             style={styles.searchInput}
+            onFocus={() => navigation.navigate('Search')}
           />
           <View style={styles.searchIconContainer}>
             <MagnifyingGlassIcon size={hp(3)} strokeWidth={3} color="gray" />
@@ -140,44 +127,31 @@ function HomeScreen({ backgroundColor = '#fff', homeTextColor = '#fbbf24' }) {
 
         {/* Categories */}
         <View style={styles.categoriesContainer}>
-  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-    {loadingCategories ? (
-      <Text>Loading categories...</Text>
-    ) : (
-      categories.map((category, index) => (
-        <TouchableOpacity 
-          key={category.idCategory}
-          style={styles.categoryItem}
-          onPress={() => setSelectedCategory(category.strCategory)}
-        >
-          <Animated.View 
-            entering={FadeInRight.springify().delay(index*100)} 
-            style={[
-              styles.categoryImageContainer,
-              selectedCategory === category.strCategory && styles.selectedCategory
-            ]}
-          >
-            <Image source={{ uri: category.strCategoryThumb }} style={styles.categoryImage} />
-          </Animated.View>
-          <Animated.Text 
-            entering={FadeInRight.springify()
-      .damping(30)
-      .mass(5)
-      .stiffness(10)
-      .overshootClamping(false)
-      .restDisplacementThreshold(0.1)
-      .restSpeedThreshold(5)} 
-            style={styles.categoriesText}
-          >
-            {category.strCategory}
-          </Animated.Text>
-        </TouchableOpacity>
-      ))
-    )}
-  </ScrollView>
-  <Text style={styles.sectionTitle}>Recipes</Text>
-</View>
-
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            {loadingCategories ? (
+              <Text>Loading categories...</Text>
+            ) : (
+              categories.map((category, index) => (
+                <TouchableOpacity
+                  key={category.idCategory}
+                  style={styles.categoryItem}
+                  onPress={() => setSelectedCategory(category.strCategory)}
+                >
+                  <Animated.View
+                    entering={FadeInRight.springify().delay(index * 100)}
+                    style={[styles.categoryImageContainer, selectedCategory === category.strCategory && styles.selectedCategory]}
+                  >
+                    <Image source={{ uri: category.strCategoryThumb }} style={styles.categoryImage} />
+                  </Animated.View>
+                  <Animated.Text entering={FadeInRight.springify()} style={styles.categoriesText}>
+                    {category.strCategory}
+                  </Animated.Text>
+                </TouchableOpacity>
+              ))
+            )}
+          </ScrollView>
+          <Text style={styles.sectionTitle}>Recipes</Text>
+        </View>
 
         {/* Recipes Section */}
         {loadingRecipes ? (
@@ -185,9 +159,9 @@ function HomeScreen({ backgroundColor = '#fff', homeTextColor = '#fbbf24' }) {
         ) : (
           <MasonryList
             data={recipes}
-            renderItem={({ item, index }) => <RecipeCard item={item} index={index}  navigation={navigation}/>}
+            renderItem={({ item, index }) => <RecipeCard item={item} index={index} navigation={navigation} />}
             keyExtractor={(item) => item.idMeal.toString()}
-            numColumns={ColumnCount}  // Adjust as needed
+            numColumns={ColumnCount}
           />
         )}
       </ScrollView>
@@ -196,23 +170,13 @@ function HomeScreen({ backgroundColor = '#fff', homeTextColor = '#fbbf24' }) {
 }
 
 const RecipeCard = ({ item, index, navigation }) => {
-  let isEven = index % 2 === 0;
-  index = item.idMeal;
+  const isEven = index % 2 === 0;
   return (
-    <Animated.View 
-      entering={FadeInDown.springify()
-        .damping(30)
-        .mass(5)
-        .stiffness(10)
-        .overshootClamping(false)
-        .restDisplacementThreshold(0.1)
-        .restSpeedThreshold(5)} 
+    <Animated.View
+      entering={FadeInDown.springify()}
       style={[styles.recipeCard, { paddingLeft: isEven ? 0 : 8, paddingRight: isEven ? 8 : 0 }]}
     >
-      <Pressable 
-        style={styles.recipePressable} 
-        onPress={() => navigation.navigate('Details', { recipeId: item.idMeal })}
-      >
+      <Pressable style={styles.recipePressable} onPress={() => navigation.navigate('Details', { recipeId: item.idMeal })}>
         <Image
           source={{ uri: item.strMealThumb }}
           style={{ width: '100%', height: index % 3 === 0 ? hp(25) : hp(38), borderRadius: 35 }}
@@ -224,7 +188,6 @@ const RecipeCard = ({ item, index, navigation }) => {
     </Animated.View>
   );
 };
-
 
 const styles = StyleSheet.create({
   container: {
@@ -335,7 +298,5 @@ const styles = StyleSheet.create({
     marginLeft: 2,
   },
 });
-
-
 
 export default HomeScreen;
