@@ -1,46 +1,46 @@
 import React, { useState } from 'react';
-import { 
-  StyleSheet, 
-  Text, 
-  View, 
-  ScrollView, 
-  TouchableOpacity, 
-  Image 
+import {
+  StyleSheet,
+  Text,
+  View,
+  FlatList,
+  TouchableOpacity,
+  Image,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 const MealPlannerScreen = () => {
   const [selectedDay, setSelectedDay] = useState('Mon');
-
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-  
+
   const mealPlan = {
     Mon: {
       breakfast: {
         title: 'Oatmeal Bowl',
         calories: '320 kcal',
         image: require('../../assets/images/logo.png'),
-        time: '8:00 AM'
+        time: '8:00 AM',
       },
       lunch: {
         title: 'Chicken Salad',
         calories: '450 kcal',
         image: require('../../assets/images/logo.png'),
-        time: '12:30 PM'
+        time: '12:30 PM',
       },
       dinner: {
         title: 'Grilled Salmon',
         calories: '580 kcal',
         image: require('../../assets/images/logo.png'),
-        time: '7:00 PM'
+        time: '7:00 PM',
       },
       snacks: {
         title: 'Greek Yogurt',
         calories: '150 kcal',
         image: require('../../assets/images/logo.png'),
-        time: '4:00 PM'
-      }
-    }
+        time: '4:00 PM',
+      },
+    },
   };
 
   const renderMealCard = (meal, mealType) => (
@@ -58,6 +58,32 @@ const MealPlannerScreen = () => {
     </View>
   );
 
+  const renderDayButton = ({ item: day }) => (
+    <TouchableOpacity
+      style={[styles.dayButton, selectedDay === day && styles.selectedDay]}
+      onPress={() => setSelectedDay(day)}
+    >
+      <Text style={[styles.dayText, selectedDay === day && styles.selectedDayText]}>{day}</Text>
+    </TouchableOpacity>
+  );
+
+  const renderMealList = () => {
+    if (!mealPlan[selectedDay]) {
+      return <ActivityIndicator size="large" color="#F59E0B" />;
+    }
+
+    return (
+      <FlatList
+        data={Object.entries(mealPlan[selectedDay] || {})}
+        keyExtractor={([type]) => type}
+        renderItem={({ item: [type, meal] }) =>
+          renderMealCard(meal, type.charAt(0).toUpperCase() + type.slice(1))
+        }
+        contentContainerStyle={styles.mealList}
+      />
+    );
+  };
+
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -70,23 +96,13 @@ const MealPlannerScreen = () => {
 
       {/* Calendar Strip */}
       <View style={styles.calendarStrip}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          {days.map((day) => (
-            <TouchableOpacity
-              key={day}
-              style={[
-                styles.dayButton,
-                selectedDay === day && styles.selectedDay
-              ]}
-              onPress={() => setSelectedDay(day)}
-            >
-              <Text style={[
-                styles.dayText,
-                selectedDay === day && styles.selectedDayText
-              ]}>{day}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+        <FlatList
+          data={days}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          keyExtractor={(item) => item}
+          renderItem={renderDayButton}
+        />
       </View>
 
       {/* Nutrition Summary */}
@@ -110,11 +126,7 @@ const MealPlannerScreen = () => {
       </View>
 
       {/* Meal List */}
-      <ScrollView style={styles.mealList}>
-        {mealPlan[selectedDay] && Object.entries(mealPlan[selectedDay]).map(([type, meal]) => (
-          renderMealCard(meal, type.charAt(0).toUpperCase() + type.slice(1))
-        ))}
-      </ScrollView>
+      {renderMealList()}
     </View>
   );
 };
@@ -139,13 +151,13 @@ const styles = StyleSheet.create({
     color: '#F59E0B',
   },
   calendarStrip: {
-    padding: 15,
+    paddingVertical: 15,
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
   },
   dayButton: {
     padding: 10,
-    marginRight: 10,
+    marginHorizontal: 5,
     borderRadius: 20,
     width: 60,
     alignItems: 'center',
@@ -191,10 +203,7 @@ const styles = StyleSheet.create({
     padding: 10,
     marginBottom: 15,
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 3.84,
     elevation: 5,

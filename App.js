@@ -12,6 +12,7 @@ import LoginScreen from './frontend/Auth/LoginScreen';
 import SignUpScreen from './frontend/Auth/SignUpScreen';
 import DetailScreen from './frontend/screens/DetailScreen';
 import MealPlannerScreen from './frontend/screens/MealPlannerScreen';
+import EditProfileScreen from './frontend/screens/EditProfileScreen';
 import { getAuthData } from './backend/LocalStorage/auth_store';
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -65,6 +66,7 @@ export default function App() {
         <Stack.Screen name="Search" component={SearchScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Signup" component={SignUpScreen} />
+        <Stack.Screen name="EditProfile" component={EditProfileScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

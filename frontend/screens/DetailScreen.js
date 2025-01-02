@@ -66,7 +66,7 @@ const DetailScreen = ({ backgroundColor = '#fff', homeTextColor = '#fbbf24' }) =
 
         {/* Back and Favorite Buttons */}
         <View style={styles.Buttons}>
-          <TouchableOpacity style={styles.BackButton} onPressOut ={()=>Navigation.navigate('Home')}>
+          <TouchableOpacity style={styles.BackButton} onPressOut={() => Navigation.goBack()}>
             <ChevronLeftIcon color={homeTextColor} size={hp(3.5)} strokeWidth={4.5} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.FavButton}>

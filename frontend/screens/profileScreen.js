@@ -5,7 +5,6 @@ import {
   View, 
   Image, 
   TouchableOpacity, 
-  ScrollView,
   FlatList 
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -34,8 +33,8 @@ const ProfileScreen = () => {
     </TouchableOpacity>
   );
 
-  return (
-    <ScrollView style={styles.container}>
+  const renderHeader = () => (
+    <>
       {/* Header Section */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -73,7 +72,7 @@ const ProfileScreen = () => {
 
         {/* Action Buttons */}
         <View style={styles.actionButtons}>
-          <TouchableOpacity style={styles.editButton}>
+          <TouchableOpacity style={styles.editButton}  onPress={() => navigation.navigate('EditProfile')}>
             <Text style={styles.editButtonText}>Edit Profile</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.shareButton}>
@@ -84,35 +83,32 @@ const ProfileScreen = () => {
 
       {/* Meal Highlights */}
       <View style={styles.highlightsContainer}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <TouchableOpacity style={styles.highlightItem}>
-            <View style={styles.highlightCircle}>
-              <Text style={styles.plusIcon}>+</Text>
-            </View>
-            <Text style={styles.highlightText}>New</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.highlightItem}>
-            <Image 
-              source={require('../../assets/images/logo.png')} 
-              style={styles.highlightImage}
-            />
-            <Text style={styles.highlightText}>Breakfast</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.highlightItem}>
-            <Image 
-              source={require('../../assets/images/logo.png')} 
-              style={styles.highlightImage}
-            />
-            <Text style={styles.highlightText}>Lunch</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.highlightItem}>
-            <Image 
-              source={require('../../assets/images/logo.png')} 
-              style={styles.highlightImage}
-            />
-            <Text style={styles.highlightText}>Dinner</Text>
-          </TouchableOpacity>
-        </ScrollView>
+        <FlatList
+          data={[
+            { id: 'new', title: 'New', isNew: true },
+            { id: 'breakfast', title: 'Breakfast', image: require('../../assets/images/logo.png') },
+            { id: 'lunch', title: 'Lunch', image: require('../../assets/images/logo.png') },
+            { id: 'dinner', title: 'Dinner', image: require('../../assets/images/logo.png') },
+          ]}
+          horizontal
+          keyExtractor={(item) => item.id}
+          showsHorizontalScrollIndicator={false}
+          renderItem={({ item }) => (
+            <TouchableOpacity style={styles.highlightItem}>
+              {item.isNew ? (
+                <View style={styles.highlightCircle}>
+                  <Text style={styles.plusIcon}>+</Text>
+                </View>
+              ) : (
+                <Image 
+                  source={item.image} 
+                  style={styles.highlightImage}
+                />
+              )}
+              <Text style={styles.highlightText}>{item.title}</Text>
+            </TouchableOpacity>
+          )}
+        />
       </View>
 
       {/* Tab Navigation */}
@@ -127,22 +123,23 @@ const ProfileScreen = () => {
           <Ionicons name="heart-outline" size={24} color="black" />
         </TouchableOpacity>
       </View>
+    </>
+  );
 
-      {/* Meal Posts Grid */}
-      <FlatList
-        data={mealPosts}
-        renderItem={renderMealPost}
-        numColumns={3}
-        keyExtractor={item => item.id}
-        style={styles.postsGrid}
-      />
-    </ScrollView>
+  return (
+    <FlatList
+      data={mealPosts}
+      renderItem={renderMealPost}
+      numColumns={3}
+      keyExtractor={(item) => item.id}
+      ListHeaderComponent={renderHeader}
+      contentContainerStyle={styles.container}
+    />
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     backgroundColor: '#fff',
   },
   header: {
@@ -276,11 +273,8 @@ const styles = StyleSheet.create({
     borderBottomWidth: 2,
     borderBottomColor: '#F59E0B',
   },
-  postsGrid: {
-    padding: 1,
-  },
   mealPost: {
-    flex: 1/3,
+    flex: 1 / 3,
     aspectRatio: 1,
     padding: 1,
   },

@@ -8,8 +8,8 @@ import FoodPlateIcon from './Icons/FoodPlateIcon';
 
 const tabIcons = {
   Home: HomeIcon,
-  Feed: FoodPlateIcon,
-  profile: UserCircleIcon,
+  MealPlanner: FoodPlateIcon,
+  Profile: UserCircleIcon,
   
   // Add more screen names and their corresponding icons here
 };
@@ -30,9 +30,9 @@ export const tabNavigatorScreenOptions = ({ route }) => ({
   tabBarActiveTintColor: theme.colors.primary,
   tabBarInactiveTintColor: 'gray',
   tabBarStyle: {
-    backgroundColor: 'rgba(255,255,255,0.3)',
-    borderRadius: 999,
+    backgroundColor: 'rgba(255,255,255,1)',
     width: wp(100),
+    height: 60,
     alignItems: 'center',
     alignSelf: 'center',
     position: 'absolute',
