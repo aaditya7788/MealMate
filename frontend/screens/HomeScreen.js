@@ -106,7 +106,7 @@ function HomeScreen({ backgroundColor = '#fff', homeTextColor = '#fbbf24' }) {
 
         {/* Greeting Section */}
         <View style={styles.greetingContainer}>
-          <Text style={styles.helloText}>{userData ? userData.displayName : 'Loading...'}</Text>
+          <Text style={styles.helloText}>{userData ? userData.name : 'Loading...'}</Text>
           <Text style={styles.mainText}>
             Make your own food, stay at <Text style={[styles.highlightText, { color: homeTextColor }]}>home</Text>
           </Text>

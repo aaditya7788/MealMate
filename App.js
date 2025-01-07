@@ -35,8 +35,8 @@ export default function App() {
   useEffect(() => {
     // Check if authentication data exists in AsyncStorage
     getAuthData().then((data) => {
-      if (data && data.email && data.password) {
-        console.log(data.email, data.password);
+      if (data && data.email && data.authToken) {
+       // console.log(data.email, data.authToken);
         setIsAuthenticated(true);  // If auth data exists, set authenticated state
       } else {
         setIsAuthenticated(false);  // Otherwise, user is not authenticated

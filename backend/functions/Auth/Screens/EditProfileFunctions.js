@@ -72,7 +72,7 @@ export const updateProfilePhoto = async (user, imageUri, setFirebaseError, navig
     // Update Firebase user profile with the Cloudinary URL
     await updateProfile(user, {
       photoURL: cloudinaryUrl,  // Set the new profile photo URL
-    });
+    }); 
 
     console.log('Profile photo updated successfully');
 

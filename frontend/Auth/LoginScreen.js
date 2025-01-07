@@ -1,10 +1,10 @@
-import React, { useState} from 'react';
-import { BackHandler } from 'react-native';
+import React, { useState } from 'react';
+import { BackHandler, StyleSheet, Text, View, TextInput, TouchableOpacity, Image } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import GoogleIcon from '../../Icons/GoogleIcon';
-import { validateEmail, validatePassword, handleLogin } from '../../backend/functions/Auth/authFunctions';
+import { validateEmail, validatePassword, login } from '../../backend/functions/Auth/authFunctions';
+
 const LoginScreen = () => {
   const navigation = useNavigation();
   const [email, setEmail] = useState('');
@@ -13,34 +13,48 @@ const LoginScreen = () => {
   const [passwordError, setPasswordError] = useState('');
   const [firebaseError, setFirebaseError] = useState('');
 
-    useFocusEffect(
-      React.useCallback(() => {
-        const onBackPress = () => true; // Prevent default back button behavior
-        BackHandler.addEventListener('hardwareBackPress', onBackPress);
-        return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
-      }, [])
-    );
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => true; // Disable back button
+      BackHandler.addEventListener('hardwareBackPress', onBackPress);
+      return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+    }, [])
+  );
 
+  const handleLoginPress = async () => {
+    if (emailError || passwordError) {
+      setFirebaseError('Please fix the errors above');
+      return;
+    }
+
+    try {
+      const response = await login(email, password);
+      console.log('Login successful:', response);
+      navigation.navigate('MainApp'); // Navigate to the home screen after login
+    } catch (error) {
+      setFirebaseError(error.message || 'Login failed. Please try again.');
+    }
+  };
 
   return (
     <View style={styles.container}>
       <View style={styles.logoContainer}>
-        <Image 
+        <Image
           source={require('../../assets/images/logo.png')}
           style={styles.logo}
           resizeMode="contain"
         />
       </View>
-      
-      <Text style={styles.title}>Login in for MealMate</Text>
-      
+
+      <Text style={styles.title}>Login to MealMate</Text>
+
       <TouchableOpacity style={styles.googleButton}>
         <GoogleIcon />
         <Text style={styles.googleButtonText}>Continue with Google</Text>
       </TouchableOpacity>
-      
+
       <Text style={styles.orText}>or</Text>
-      
+
       <TextInput
         style={styles.input}
         placeholder="EMAIL"
@@ -48,8 +62,8 @@ const LoginScreen = () => {
         value={email}
         onChangeText={(text) => validateEmail(text, setEmail, setEmailError)}
       />
-      {emailError ? <Text style={styles.ErrorText}>{emailError}</Text> : null}
-      
+      {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
+
       <TextInput
         style={styles.input}
         placeholder="PASSWORD"
@@ -58,20 +72,20 @@ const LoginScreen = () => {
         value={password}
         onChangeText={(text) => validatePassword(text, setPassword, setPasswordError)}
       />
-      {passwordError ? <Text style={styles.ErrorText}>{passwordError}</Text> : null}
-      
-      <TouchableOpacity 
-        style={styles.createAccountButton} 
-        onPress={() => handleLogin(email, password, emailError, passwordError, setFirebaseError, navigation)}
+      {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
+
+      <TouchableOpacity
+        style={styles.createAccountButton}
+        onPress={handleLoginPress}
       >
         <Text style={styles.createAccountButtonText}>Login Now</Text>
       </TouchableOpacity>
-      
-      {firebaseError ? <Text style={styles.ErrorText}>{firebaseError}</Text> : null}
+
+      {firebaseError ? <Text style={styles.errorText}>{firebaseError}</Text> : null}
 
       <TouchableOpacity>
-        <Text 
-          style={styles.linkText}  
+        <Text
+          style={styles.linkText}
           onPress={() => navigation.navigate('Signup')}
         >
           Create an account
@@ -105,7 +119,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 20,
-    color: '#F59E0B'
+    color: '#F59E0B',
   },
   googleButton: {
     flexDirection: 'row',
@@ -145,7 +159,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
   },
-  ErrorText: {
+  errorText: {
     color: 'red',
     textAlign: 'left',
     marginBottom: 10,

@@ -1,13 +1,20 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Save authentication data to AsyncStorage
-export const saveAuthData = async (email, password, accessToken, displayName, uid) => {
+export const saveAuthData = async (authToken, email, name, _id) => {
   try {
-    await AsyncStorage.setItem('email', email);
-    await AsyncStorage.setItem('password', password);
-    await AsyncStorage.setItem('accessToken', accessToken);
-    await AsyncStorage.setItem('displayName', displayName);
-    await AsyncStorage.setItem('uid', uid);
+    const userData = {
+      authToken,
+      email,
+      name,
+      _id,  // Use _id instead of uid
+    };
+    console.log("User Data:", userData);  // Log the user data to be saved
+
+    // Loop over each property of userData and save it individually
+    for (const key in userData) {
+      await AsyncStorage.setItem(key, userData[key]);
+    }
     console.log("Auth data saved to AsyncStorage");
   } catch (error) {
     console.error("Error saving auth data to AsyncStorage:", error);
@@ -17,17 +24,21 @@ export const saveAuthData = async (email, password, accessToken, displayName, ui
 // Retrieve authentication data from AsyncStorage and display in JSON format
 export const getAuthData = async () => {
   try {
+    // Retrieve all individual user data
+    const authToken = await AsyncStorage.getItem('authToken');
     const email = await AsyncStorage.getItem('email');
-    const password = await AsyncStorage.getItem('password');
-    const accessToken = await AsyncStorage.getItem('accessToken');
-    const displayName = await AsyncStorage.getItem('displayName');
-    const uid = await AsyncStorage.getItem('uid');
+    const name = await AsyncStorage.getItem('name');
+    const _id = await AsyncStorage.getItem('_id');  // Use _id instead of uid
 
-    const authData = { email, password, accessToken, displayName, uid };
+    const authData = { authToken, email, name, _id };
 
-    // Display the data in JSON format
+    // Check if the data exists, if not return null
+    if (!authData.authToken || !authData.email) {
+      console.log("No saved auth data found.");
+      return null;
+    }
+
     console.log("Saved Auth Data: ", JSON.stringify(authData, null, 2));  // JSON.stringify formats the output
-
     return authData;
   } catch (error) {
     console.error("Error getting auth data from AsyncStorage:", error);
@@ -37,11 +48,11 @@ export const getAuthData = async () => {
 // Clear authentication data from AsyncStorage (for logout)
 export const clearAuthData = async () => {
   try {
+    // Clear all auth data by removing the individual items
+    await AsyncStorage.removeItem('authToken');
     await AsyncStorage.removeItem('email');
-    await AsyncStorage.removeItem('password');
-    await AsyncStorage.removeItem('accessToken');
-    await AsyncStorage.removeItem('displayName');
-    await AsyncStorage.removeItem('uid');
+    await AsyncStorage.removeItem('name');
+    await AsyncStorage.removeItem('_id');  // Remove _id instead of uid
     console.log("Auth data cleared from AsyncStorage");
   } catch (error) {
     console.error("Error clearing auth data from AsyncStorage:", error);

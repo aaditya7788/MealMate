@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import GoogleIcon from '../../Icons/GoogleIcon';
-import { validateEmail, validatePassword, validateName, handleSignUp } from '../../backend/functions/Auth/authFunctions';
+import { validateEmail, validatePassword, validateName, signup } from '../../backend/functions/Auth/authFunctions';
 
 const SignUpScreen = () => {
   const navigation = useNavigation();
@@ -12,7 +12,23 @@ const SignUpScreen = () => {
   const [nameError, setNameError] = useState('');
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
-  const [firebaseError, setFirebaseError] = useState('');
+  const [apiError, setApiError] = useState('');
+
+  const handleSignUp = async () => {
+    validateName(name, setName, setNameError);
+    validateEmail(email, setEmail, setEmailError);
+    validatePassword(password, setPassword, setPasswordError);
+
+    if (!nameError && !emailError && !passwordError) {
+      try {
+        const data = await signup(name, email, password);
+        console.log('Sign up successful:', data);
+        navigation.navigate('MainApp'); // Navigate to Login or Main screen after signup
+      } catch (error) {
+        setApiError(error.message);
+      }
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -63,12 +79,12 @@ const SignUpScreen = () => {
       
       <TouchableOpacity 
         style={styles.createAccountButton} 
-        onPress={() => handleSignUp(name, email, password, nameError, emailError, passwordError, setFirebaseError, navigation)}
+        onPress={handleSignUp}
       >
         <Text style={styles.createAccountButtonText}>Sign Up Now</Text>
       </TouchableOpacity>
       
-      {firebaseError ? <Text style={styles.ErrorText}>{firebaseError}</Text> : null}
+      {apiError ? <Text style={styles.ErrorText}>{apiError}</Text> : null}
 
       <TouchableOpacity>
         <Text 
