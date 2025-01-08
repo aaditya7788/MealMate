@@ -1,13 +1,14 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Save authentication data to AsyncStorage
-export const saveAuthData = async (authToken, email, name, _id) => {
+export const saveAuthData = async (authToken, email, name, _id, profilepic) => {
   try {
     const userData = {
       authToken,
       email,
       name,
       _id,  // Use _id instead of uid
+      profilepic, // Add profilepic
     };
     console.log("User Data:", userData);  // Log the user data to be saved
 
@@ -29,8 +30,9 @@ export const getAuthData = async () => {
     const email = await AsyncStorage.getItem('email');
     const name = await AsyncStorage.getItem('name');
     const _id = await AsyncStorage.getItem('_id');  // Use _id instead of uid
+    const profilepic = await AsyncStorage.getItem('profilepic'); // Retrieve profilepic
 
-    const authData = { authToken, email, name, _id };
+    const authData = { authToken, email, name, _id, profilepic };
 
     // Check if the data exists, if not return null
     if (!authData.authToken || !authData.email) {
@@ -53,6 +55,7 @@ export const clearAuthData = async () => {
     await AsyncStorage.removeItem('email');
     await AsyncStorage.removeItem('name');
     await AsyncStorage.removeItem('_id');  // Remove _id instead of uid
+    await AsyncStorage.removeItem('profilepic'); // Remove profilepic
     console.log("Auth data cleared from AsyncStorage");
   } catch (error) {
     console.error("Error clearing auth data from AsyncStorage:", error);

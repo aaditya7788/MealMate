@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   StyleSheet, 
   Text, 
@@ -9,16 +9,35 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const ProfileScreen = () => {
   const navigation = useNavigation();
+  const [username, setUsername] = useState('');
+  const [profilePic, setProfilePic] = useState(null);
+
+  // Fetch user data from AsyncStorage
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const name = await AsyncStorage.getItem('name');
+        const profilepic = await AsyncStorage.getItem('profilepic');
+
+        setUsername(name || 'User'); // Default to 'User' if name is not available
+        setProfilePic(profilepic);  // Default image can be handled in the UI
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
+    };
+
+    fetchUserData();
+  }, []);
 
   // Dummy data for meal posts
   const mealPosts = [
     { id: '1', image: require('../../assets/images/logo.png') },
     { id: '2', image: require('../../assets/images/logo.png') },
     { id: '3', image: require('../../assets/images/logo.png') },
-    // Add more meal posts as needed
   ];
 
   const stats = [
@@ -50,7 +69,7 @@ const ProfileScreen = () => {
       <View style={styles.profileSection}>
         <View style={styles.profileInfo}>
           <Image 
-            source={require('../../assets/images/avatar.png')} 
+            source={profilePic ? { uri: profilePic } : require('../../assets/images/avatar.png')} 
             style={styles.profileImage}
           />
           <View style={styles.statsContainer}>
@@ -64,7 +83,7 @@ const ProfileScreen = () => {
         </View>
 
         <View style={styles.bioSection}>
-          <Text style={styles.username}>Aaditya Sahani</Text>
+          <Text style={styles.username}>{username}</Text>
           <Text style={styles.bioText}>Food enthusiast 🍳</Text>
           <Text style={styles.bioText}>Sharing healthy and delicious meals</Text>
           <Text style={styles.bioText}>Follow for daily meal inspiration! 🥗</Text>
@@ -72,7 +91,7 @@ const ProfileScreen = () => {
 
         {/* Action Buttons */}
         <View style={styles.actionButtons}>
-          <TouchableOpacity style={styles.editButton}  onPress={() => navigation.navigate('EditProfile')}>
+          <TouchableOpacity style={styles.editButton} onPress={() => navigation.navigate('EditProfile')}>
             <Text style={styles.editButtonText}>Edit Profile</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.shareButton}>
@@ -139,6 +158,7 @@ const ProfileScreen = () => {
 };
 
 const styles = StyleSheet.create({
+  // Styles remain unchanged
   container: {
     backgroundColor: '#fff',
   },

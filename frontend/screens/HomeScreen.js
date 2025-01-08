@@ -3,7 +3,7 @@ import { BackHandler, ScrollView, StyleSheet, TextInput, TouchableOpacity, Press
 import { useFocusEffect } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import { hp, wp, getColumnCount } from '../../helpers/common';
-import { BellIcon, MagnifyingGlassIcon, PowerIcon } from 'react-native-heroicons/outline';
+import { MagnifyingGlassIcon, PowerIcon } from 'react-native-heroicons/outline';
 import { fetchCategories, fetchRecipes } from '../../Api/request';
 import MasonryList from '@react-native-seoul/masonry-list';
 import Animated, { FadeInRight, FadeInDown } from 'react-native-reanimated';
@@ -14,34 +14,23 @@ function HomeScreen({ backgroundColor = '#fff', homeTextColor = '#fbbf24' }) {
   const [selectedCategory, setSelectedCategory] = useState('Vegetarian');
   const [categories, setCategories] = useState([]);
   const [recipes, setRecipes] = useState([]);
-  const [error, setError] = useState(null);
-  const [loadingCategories, setLoadingCategories] = useState(true);
-  const [loadingRecipes, setLoadingRecipes] = useState(true);
   const [userData, setUserData] = useState(null);
+  const [profilePic, setProfilePic] = useState(null);
 
   const navigation = useNavigation();
   const ColumnCount = getColumnCount();
 
-  const handleBellPress = async () => {
-    try {
-      // Clear the authentication data
-      await clearAuthData();
-      // Navigate to the login or other screen after clearing data
-      navigation.navigate('Login');  // Replace with your desired route
-    } catch (error) {
-      console.error('Error clearing data:', error);
-    }
-  };
-  // Load user data on mount
+  // Fetch user data
   useEffect(() => {
-    const loadUserData = async () => {
+    const fetchUserData = async () => {
       const data = await getAuthData();
       setUserData(data);
+      setProfilePic(data?.profilepic || null);
     };
-    loadUserData();
+    fetchUserData();
   }, []);
 
-  // Fetch categories on component mount
+  // Fetch categories
   useEffect(() => {
     const loadCategories = async () => {
       try {
@@ -49,16 +38,11 @@ function HomeScreen({ backgroundColor = '#fff', homeTextColor = '#fbbf24' }) {
         const filteredCategories = categoryData.categories
           .filter((category) => !['Beef', 'Lamb', 'Pork'].includes(category.strCategory))
           .sort((a, b) => (a.strCategory === 'Vegetarian' ? -1 : b.strCategory === 'Vegetarian' ? 1 : 0));
-
         setCategories(filteredCategories);
       } catch (error) {
         console.error('Error loading categories:', error);
-        setError('Error loading categories');
-      } finally {
-        setLoadingCategories(false);
       }
     };
-
     loadCategories();
   }, []);
 
@@ -71,13 +55,9 @@ function HomeScreen({ backgroundColor = '#fff', homeTextColor = '#fbbf24' }) {
           setRecipes(recipesData.meals || []);
         } catch (error) {
           console.error('Error loading recipes:', error);
-          setError('Error loading recipes');
-        } finally {
-          setLoadingRecipes(false);
         }
       }
     };
-
     loadRecipes();
   }, [selectedCategory]);
 
@@ -90,25 +70,34 @@ function HomeScreen({ backgroundColor = '#fff', homeTextColor = '#fbbf24' }) {
     }, [])
   );
 
-  if (error) {
-    return <Text>{error}</Text>;
-  }
+  const handleLogout = async () => {
+    try {
+      await clearAuthData();
+      navigation.navigate('Login');
+    } catch (error) {
+      console.error('Error logging out:', error);
+    }
+  };
 
   return (
     <View style={[styles.container, { backgroundColor }]}>
       <StatusBar style="dark" />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollViewContent}>
-        {/* Avatar and Bell Icon */}
+        {/* Avatar and Logout Icon */}
         <View style={styles.avatarContainer}>
-          <Image source={require('../../assets/images/avatar.png')} style={styles.avatar} />
-          <PowerIcon size={hp(4)} color="gray" onPress={handleBellPress} />
+          <Image
+            source={profilePic ? { uri: profilePic } : require('../../assets/images/avatar.png')}
+            style={styles.avatar}
+          />
+          <PowerIcon size={hp(4)} color="gray" onPress={handleLogout} />
         </View>
 
         {/* Greeting Section */}
         <View style={styles.greetingContainer}>
-          <Text style={styles.helloText}>{userData ? userData.name : 'Loading...'}</Text>
+          <Text style={styles.helloText}>{userData?.name || 'Loading...'}</Text>
           <Text style={styles.mainText}>
-            Make your own food, stay at <Text style={[styles.highlightText, { color: homeTextColor }]}>home</Text>
+            Make your own food, stay at{' '}
+            <Text style={[styles.highlightText, { color: homeTextColor }]}>home</Text>
           </Text>
         </View>
 
@@ -128,42 +117,37 @@ function HomeScreen({ backgroundColor = '#fff', homeTextColor = '#fbbf24' }) {
         {/* Categories */}
         <View style={styles.categoriesContainer}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {loadingCategories ? (
-              <Text>Loading categories...</Text>
-            ) : (
-              categories.map((category, index) => (
-                <TouchableOpacity
-                  key={category.idCategory}
-                  style={styles.categoryItem}
-                  onPress={() => setSelectedCategory(category.strCategory)}
+            {categories.map((category, index) => (
+              <TouchableOpacity
+                key={category.idCategory}
+                style={styles.categoryItem}
+                onPress={() => setSelectedCategory(category.strCategory)}
+              >
+                <Animated.View
+                  entering={FadeInRight.springify().delay(index * 100)}
+                  style={[
+                    styles.categoryImageContainer,
+                    selectedCategory === category.strCategory && styles.selectedCategory,
+                  ]}
                 >
-                  <Animated.View
-                    entering={FadeInRight.springify().delay(index * 100)}
-                    style={[styles.categoryImageContainer, selectedCategory === category.strCategory && styles.selectedCategory]}
-                  >
-                    <Image source={{ uri: category.strCategoryThumb }} style={styles.categoryImage} />
-                  </Animated.View>
-                  <Animated.Text entering={FadeInRight.springify()} style={styles.categoriesText}>
-                    {category.strCategory}
-                  </Animated.Text>
-                </TouchableOpacity>
-              ))
-            )}
+                  <Image source={{ uri: category.strCategoryThumb }} style={styles.categoryImage} />
+                </Animated.View>
+                <Animated.Text entering={FadeInRight.springify()} style={styles.categoriesText}>
+                  {category.strCategory}
+                </Animated.Text>
+              </TouchableOpacity>
+            ))}
           </ScrollView>
           <Text style={styles.sectionTitle}>Recipes</Text>
         </View>
 
         {/* Recipes Section */}
-        {loadingRecipes ? (
-          <Text>Loading recipes...</Text>
-        ) : (
-          <MasonryList
-            data={recipes}
-            renderItem={({ item, index }) => <RecipeCard item={item} index={index} navigation={navigation} />}
-            keyExtractor={(item) => item.idMeal.toString()}
-            numColumns={ColumnCount}
-          />
-        )}
+        <MasonryList
+          data={recipes}
+          renderItem={({ item, index }) => <RecipeCard item={item} index={index} navigation={navigation} />}
+          keyExtractor={(item) => item.idMeal.toString()}
+          numColumns={ColumnCount}
+        />
       </ScrollView>
     </View>
   );
@@ -207,6 +191,7 @@ const styles = StyleSheet.create({
   avatar: {
     height: hp(5),
     width: hp(5),
+    borderRadius: hp(2.5),
   },
   greetingContainer: {
     marginHorizontal: 16,
@@ -235,7 +220,6 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: hp(1.7),
-    paddingVertical: 0,
     paddingHorizontal: 12,
   },
   searchIconContainer: {
