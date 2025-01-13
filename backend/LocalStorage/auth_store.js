@@ -8,7 +8,11 @@ export const saveAuthData = async (authToken, email, name, _id, profilepic) => {
       email,
       name,
       _id,  // Use _id instead of uid
+<<<<<<< HEAD
       profilepic, // Add profilepic to userData
+=======
+      profilepic, // Add profilepic
+>>>>>>> 39c92cc61d42ce436e8affcb044a8be8f8545476
     };
     console.log("User Data:", userData);  // Log the user data to be saved
 
