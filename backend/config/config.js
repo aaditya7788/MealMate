@@ -1,0 +1,1 @@
+export const Basic_url = 'http://192.168.0.105:5000';

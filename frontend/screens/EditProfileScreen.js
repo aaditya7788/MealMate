@@ -11,40 +11,18 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { pickImage, uploadImageToCloudinary } from '../../backend/functions/Auth/Screens/EditProfileFunctions'; // Import the pickImage and uploadImageToCloudinary functions
-import { updateProfile } from 'firebase/auth';
-import { auth } from '../../backend/config/firebaseConfig'; // Firebase config
-
+import { pickImage, updateProfilePhoto } from '../../backend/functions/Auth/Screens/Editprofile_function.js';
+import { Basic_url } from '../../backend/config/config.js';
 const EditProfileScreen = () => {
   const navigation = useNavigation();
   const [profileImage, setProfileImage] = useState(null); // State for profile image
-  const [firebaseError, setFirebaseError] = useState(''); // State for handling Firebase errors
-
+  const [firebaseError, setFirebaseError] = useState(''); // State for handling errors
   const handlePickAndUploadImage = async () => {
     const imageUri = await pickImage(); // Let user pick image
     if (imageUri) {
-      // Upload the image to Cloudinary
-      const downloadUrl = await uploadImageToCloudinary(imageUri);
-      if (downloadUrl) {
-        // Update the local profile image
-        setProfileImage(downloadUrl);
-        
-        // Update the Firebase profile with the Cloudinary URL
-        try {
-          const user = auth.currentUser; // Get the current user from Firebase
-          if (user) {
-            await updateProfile(user, { photoURL: downloadUrl }); // Update profile photo URL in Firebase
-            Alert.alert('Success', 'Profile picture updated successfully.');
-          } else {
-            setFirebaseError('No user logged in.');
-          }
-        } catch (error) {
-          console.error('Error updating Firebase profile:', error);
-          setFirebaseError('Failed to update profile picture.');
-        }
-      } else {
-        setFirebaseError('Failed to upload image to Cloudinary.');
-      }
+      // Update the profile photo
+      await updateProfilePhoto(imageUri, setFirebaseError, navigation);
+      setProfileImage(imageUri); // Update the local profile image
     }
   };
 
@@ -109,7 +87,7 @@ const EditProfileScreen = () => {
         </View>
       </View>
 
-      {/* Firebase error display */}
+      {/* Error display */}
       {firebaseError ? <Text style={styles.errorText}>{firebaseError}</Text> : null}
 
       {/* Save Button */}

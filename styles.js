@@ -32,7 +32,7 @@ export const tabNavigatorScreenOptions = ({ route }) => ({
   tabBarStyle: {
     backgroundColor: 'rgba(255,255,255,1)',
     width: wp(100),
-    height: 60,
+    height: 40,
     alignItems: 'center',
     alignSelf: 'center',
     position: 'absolute',
