@@ -1,39 +1,65 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { 
   StyleSheet, 
   Text, 
   View, 
   Image, 
   TouchableOpacity, 
-  FlatList 
+  FlatList,
+  ActivityIndicator 
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { SetProfilePic } from '../components/SetProfilePic';
 
 const ProfileScreen = () => {
   const navigation = useNavigation();
-  const [username, setUsername] = useState('');
-  const [profilePic, setProfilePic] = useState(null);
+  const [userData, setUserData] = useState({
+    username: '',
+    profilePic: null,
+    bio: '',
+  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [error, setError] = useState(null);
 
-  // Fetch user data from AsyncStorage
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const name = await AsyncStorage.getItem('name');
-        const profilepic = await AsyncStorage.getItem('profilepic');
+  const fetchUserData = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
 
-        setUsername(name || 'User'); // Default to 'User' if name is not available
-        setProfilePic(profilepic);  // Default image can be handled in the UI
-      } catch (error) {
-        console.error('Error fetching user data:', error);
-      }
-    };
+      const [name, bio] = await Promise.all([
+        AsyncStorage.getItem('name'),
+        AsyncStorage.getItem('bio'),
+      ]);
+      const profileUrl = await SetProfilePic(Date.now());
 
-    fetchUserData();
+      setUserData({
+        username: name || 'User',
+        profilePic: profileUrl,
+        bio: bio || 'Food enthusiast 🍳',
+      });
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+      setError('Failed to load profile data');
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
   }, []);
 
-  // Dummy data for meal posts
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await fetchUserData();
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchUserData();
+    }, [fetchUserData])
+  );
+
   const mealPosts = [
     { id: '1', image: require('../../assets/images/logo.png') },
     { id: '2', image: require('../../assets/images/logo.png') },
@@ -46,15 +72,21 @@ const ProfileScreen = () => {
     { label: 'Following', value: '287' },
   ];
 
+  const highlights = [
+    { id: 'new', title: 'New', isNew: true },
+    { id: 'breakfast', title: 'Breakfast', image: require('../../assets/images/logo.png') },
+    { id: 'lunch', title: 'Lunch', image: require('../../assets/images/logo.png') },
+    { id: 'dinner', title: 'Dinner', image: require('../../assets/images/logo.png') },
+  ];
+
   const renderMealPost = ({ item }) => (
     <TouchableOpacity style={styles.mealPost}>
       <Image source={item.image} style={styles.mealImage} />
     </TouchableOpacity>
   );
 
-  const renderHeader = () => (
+  const renderProfileInfo = () => (
     <>
-      {/* Header Section */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color="black" />
@@ -65,11 +97,12 @@ const ProfileScreen = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Profile Info Section */}
+      {error && <Text style={styles.errorText}>{error}</Text>}
+
       <View style={styles.profileSection}>
         <View style={styles.profileInfo}>
           <Image 
-            source={profilePic ? { uri: profilePic } : require('../../assets/images/avatar.png')} 
+            source={userData.profilePic ? { uri: userData.profilePic } : require('../../assets/images/avatar.png')} 
             style={styles.profileImage}
           />
           <View style={styles.statsContainer}>
@@ -83,15 +116,15 @@ const ProfileScreen = () => {
         </View>
 
         <View style={styles.bioSection}>
-          <Text style={styles.username}>{username}</Text>
-          <Text style={styles.bioText}>Food enthusiast 🍳</Text>
-          <Text style={styles.bioText}>Sharing healthy and delicious meals</Text>
-          <Text style={styles.bioText}>Follow for daily meal inspiration! 🥗</Text>
+          <Text style={styles.username}>{userData.username}</Text>
+          <Text style={styles.bioText}>{userData.bio}</Text>
         </View>
 
-        {/* Action Buttons */}
         <View style={styles.actionButtons}>
-          <TouchableOpacity style={styles.editButton} onPress={() => navigation.navigate('EditProfile')}>
+          <TouchableOpacity 
+            style={styles.editButton} 
+            onPress={() => navigation.navigate('EditProfile')}
+          >
             <Text style={styles.editButtonText}>Edit Profile</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.shareButton}>
@@ -100,18 +133,12 @@ const ProfileScreen = () => {
         </View>
       </View>
 
-      {/* Meal Highlights */}
       <View style={styles.highlightsContainer}>
         <FlatList
-          data={[
-            { id: 'new', title: 'New', isNew: true },
-            { id: 'breakfast', title: 'Breakfast', image: require('../../assets/images/logo.png') },
-            { id: 'lunch', title: 'Lunch', image: require('../../assets/images/logo.png') },
-            { id: 'dinner', title: 'Dinner', image: require('../../assets/images/logo.png') },
-          ]}
+          data={highlights}
           horizontal
-          keyExtractor={(item) => item.id}
           showsHorizontalScrollIndicator={false}
+          keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <TouchableOpacity style={styles.highlightItem}>
               {item.isNew ? (
@@ -119,10 +146,7 @@ const ProfileScreen = () => {
                   <Text style={styles.plusIcon}>+</Text>
                 </View>
               ) : (
-                <Image 
-                  source={item.image} 
-                  style={styles.highlightImage}
-                />
+                <Image source={item.image} style={styles.highlightImage} />
               )}
               <Text style={styles.highlightText}>{item.title}</Text>
             </TouchableOpacity>
@@ -130,7 +154,6 @@ const ProfileScreen = () => {
         />
       </View>
 
-      {/* Tab Navigation */}
       <View style={styles.tabContainer}>
         <TouchableOpacity style={[styles.tab, styles.activeTab]}>
           <Ionicons name="grid-outline" size={24} color="#F59E0B" />
@@ -145,17 +168,33 @@ const ProfileScreen = () => {
     </>
   );
 
+  if (isLoading && !isRefreshing) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#F59E0B" />
+      </View>
+    );
+  }
+
   return (
     <FlatList
       data={mealPosts}
       renderItem={renderMealPost}
       numColumns={3}
       keyExtractor={(item) => item.id}
-      ListHeaderComponent={renderHeader}
+      ListHeaderComponent={renderProfileInfo}
       contentContainerStyle={styles.container}
+      onRefresh={handleRefresh}
+      refreshing={isRefreshing}
     />
   );
 };
+
+
+
+
+
+
 
 const styles = StyleSheet.create({
   // Styles remain unchanged
@@ -301,6 +340,18 @@ const styles = StyleSheet.create({
   mealImage: {
     width: '100%',
     height: '100%',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
+  errorText: {
+    color: 'red',
+    textAlign: 'center',
+    margin: 10,
+    padding: 10,
   },
 });
 

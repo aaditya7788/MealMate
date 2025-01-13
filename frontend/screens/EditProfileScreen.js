@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
   Text,
@@ -11,21 +11,48 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { pickImage, updateProfilePhoto } from '../../backend/functions/Auth/Screens/Editprofile_function.js';
+import { pickImage, updateProfilePhoto } from '../../backend/functions/Screens/Editprofile_function.js';
+import { SetProfilePic } from '../components/SetProfilePic.js';
 import { Basic_url } from '../../backend/config/config.js';
+
 const EditProfileScreen = () => {
   const navigation = useNavigation();
-  const [profileImage, setProfileImage] = useState(null); // State for profile image
-  const [firebaseError, setFirebaseError] = useState(''); // State for handling errors
-  const handlePickAndUploadImage = async () => {
-    const imageUri = await pickImage(); // Let user pick image
-    if (imageUri) {
-      // Update the profile photo
-      await updateProfilePhoto(imageUri, setFirebaseError, navigation);
-      setProfileImage(imageUri); // Update the local profile image
+  const [profileImage, setProfileImage] = useState(null);
+  const [profileImageUrl, setProfileImageUrl] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [firebaseError, setFirebaseError] = useState('');
+
+  useEffect(() => {
+    loadProfileImage();
+  }, []);
+
+  const loadProfileImage = async () => {
+    try {
+      const imageUrl = await SetProfilePic();
+      setProfileImageUrl(imageUrl);
+    } catch (error) {
+      console.error('Error loading profile image:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
+// In the handlePickAndUploadImage function:
+const handlePickAndUploadImage = async () => {
+  const imageUri = await pickImage();
+  if (imageUri) {
+    try {
+      await updateProfilePhoto(imageUri, setFirebaseError, navigation);
+      setProfileImage(imageUri);
+      // Force reload with new timestamp
+      const newProfileUrl = await SetProfilePic(Date.now());
+      setProfileImageUrl(newProfileUrl);
+    } catch (error) {
+      console.error('Error updating profile image:', error);
+      setFirebaseError('Failed to update profile image');
+    }
+  }
+};
   return (
     <ScrollView style={styles.container}>
       {/* Header */}
@@ -42,14 +69,16 @@ const EditProfileScreen = () => {
       {/* Profile Picture Section */}
       <View style={styles.profileSection}>
         <View style={styles.profilePictureContainer}>
-          <Image
-            source={
-              profileImage
-                ? { uri: profileImage }
-                : require('../../assets/images/avatar.png')
-            }
-            style={styles.profileImage}
-          />
+            <Image
+        source={
+          profileImage
+            ? { uri: profileImage }
+            : profileImageUrl
+            ? { uri: profileImageUrl }
+            : require('../../assets/images/avatar.png')
+        }
+        style={styles.profileImage}
+      />
           <TouchableOpacity onPress={handlePickAndUploadImage}>
             <Text style={styles.editPictureText}>Edit picture or avatar</Text>
           </TouchableOpacity>

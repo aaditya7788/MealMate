@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { BackHandler } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { fetchCategories, fetchRecipes } from '../../../../Api/request';
-import { clearAuthData, getAuthData } from '../../../LocalStorage/auth_store';
+import { fetchCategories, fetchRecipes } from '../../../Api/request';
+import { clearAuthData, getAuthData } from '../../LocalStorage/auth_store';
 
 export const useHomeFunctions = () => {
   const [selectedCategory, setSelectedCategory] = useState('Vegetarian');

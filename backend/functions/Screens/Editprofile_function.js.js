@@ -1,8 +1,8 @@
 import axios from 'axios';
 import { Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { getAuthData } from '../../../LocalStorage/auth_store';
-import { Basic_url } from '../../../config/config';
+import { getAuthData } from '../../LocalStorage/auth_store';
+import { Basic_url } from '../../config/config';
 export const pickImage = async () => {
   try {
     let result = await ImagePicker.launchImageLibraryAsync({

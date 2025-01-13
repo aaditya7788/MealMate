@@ -51,11 +51,7 @@ export const signup = async (name, email, password) => {
     }
 
     // Save authentication data to AsyncStorage after successful signup
-<<<<<<< HEAD
-    const { authToken, email: userEmail, name: userName, _id, profilepic } = data.user;
-=======
     const { authToken, email: userEmail, name: userName, _id, profilepic } = data.user; // Include profilepic
->>>>>>> 39c92cc61d42ce436e8affcb044a8be8f8545476
     await saveAuthData(authToken, userEmail, userName, _id, profilepic);
 
     return data;
@@ -83,11 +79,7 @@ export const login = async (email, password) => {
     }
 
     // Save authentication data to AsyncStorage after successful login
-<<<<<<< HEAD
-    const { authToken, email: userEmail, name: userName, _id, profilepic } = data.user;
-=======
     const { authToken, email: userEmail, name: userName, _id, profilepic } = data.user; // Include profilepic
->>>>>>> 39c92cc61d42ce436e8affcb044a8be8f8545476
     await saveAuthData(authToken, userEmail, userName, _id, profilepic);
 
     return data;
@@ -95,8 +87,4 @@ export const login = async (email, password) => {
     console.error('Error during Login:', error);
     throw error;
   }
-<<<<<<< HEAD
 };
-=======
-};
->>>>>>> 39c92cc61d42ce436e8affcb044a8be8f8545476

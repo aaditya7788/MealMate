@@ -1,23 +1,3 @@
-<<<<<<< HEAD
-import React from 'react';
-import { Text } from 'react-native';
-import Home_frame from '../frame/Home_frame';
-import { useHomeFunctions } from '../../backend/functions/Auth/Screens/home_function';
-
-function HomeScreen({ backgroundColor = '#fff', homeTextColor = '#fbbf24' }) {
-  const {
-    selectedCategory,
-    setSelectedCategory,
-    categories,
-    recipes,
-    error,
-    loadingCategories,
-    loadingRecipes,
-    userData,
-    handleLogout,
-    navigation,
-  } = useHomeFunctions();
-=======
 import React, { useState, useEffect } from 'react';
 import { BackHandler, ScrollView, StyleSheet, TextInput, TouchableOpacity, Pressable, View, Text, Image } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
@@ -89,7 +69,6 @@ function HomeScreen({ backgroundColor = '#fff', homeTextColor = '#fbbf24' }) {
       return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
     }, [])
   );
->>>>>>> 39c92cc61d42ce436e8affcb044a8be8f8545476
 
   const handleLogout = async () => {
     try {
@@ -101,25 +80,6 @@ function HomeScreen({ backgroundColor = '#fff', homeTextColor = '#fbbf24' }) {
   };
 
   return (
-<<<<<<< HEAD
-    <Home_frame
-      userData={userData}
-      backgroundColor={backgroundColor}
-      homeTextColor={homeTextColor}
-      handleLogout={handleLogout}
-      categories={categories}
-      loadingCategories={loadingCategories}
-      selectedCategory={selectedCategory}
-      setSelectedCategory={setSelectedCategory}
-      recipes={recipes}
-      loadingRecipes={loadingRecipes}
-      navigation={navigation}
-    />
-  );
-}
-
-export default HomeScreen;
-=======
     <View style={[styles.container, { backgroundColor }]}>
       <StatusBar style="dark" />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollViewContent}>
@@ -324,4 +284,3 @@ const styles = StyleSheet.create({
 });
 
 export default HomeScreen;
->>>>>>> 39c92cc61d42ce436e8affcb044a8be8f8545476
