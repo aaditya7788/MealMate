@@ -9,7 +9,7 @@ import MasonryList from '@react-native-seoul/masonry-list';
 import Animated, { FadeInRight, FadeInDown } from 'react-native-reanimated';
 import { useNavigation } from '@react-navigation/native';
 import { clearAuthData, getAuthData } from '../../backend/LocalStorage/auth_store';
-
+import { Basic_url } from '../../backend/config/config';
 function HomeScreen({ backgroundColor = '#fff', homeTextColor = '#fbbf24' }) {
   const [selectedCategory, setSelectedCategory] = useState('Vegetarian');
   const [categories, setCategories] = useState([]);
@@ -25,7 +25,7 @@ function HomeScreen({ backgroundColor = '#fff', homeTextColor = '#fbbf24' }) {
     const fetchUserData = async () => {
       const data = await getAuthData();
       setUserData(data);
-      setProfilePic(data?.profilepic || null);
+      setProfilePic(`${Basic_url}${data?.profilepic}` || null);
     };
     fetchUserData();
   }, []);
@@ -189,16 +189,18 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   avatar: {
-    height: hp(5),
-    width: hp(5),
-    borderRadius: hp(2.5),
+    height: 60,
+    width: 60,
+    borderRadius: 999,
+    borderWidth:2,
+    borderColor: '#fbbf24',
   },
   greetingContainer: {
     marginHorizontal: 16,
     marginBottom: 24,
   },
   helloText: {
-    fontSize: hp(1.8),
+    fontSize: 18,
     marginBottom: 8,
   },
   mainText: {

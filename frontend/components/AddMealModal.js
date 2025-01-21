@@ -1,7 +1,19 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, TextInput, Button, StyleSheet, Modal } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 const AddMealModal = ({ modalVisible, setModalVisible, day, setDay, time, setTime, mealType, setMealType, handleAddMeal }) => {
+  const [showTimePicker, setShowTimePicker] = useState(false);
+
+  const onTimeChange = (event, selectedTime) => {
+    setShowTimePicker(false);
+    if (selectedTime) {
+      const hours = selectedTime.getHours().toString().padStart(2, '0');
+      const minutes = selectedTime.getMinutes().toString().padStart(2, '0');
+      setTime(`${hours}:${minutes}`);
+    }
+  };
+
   return (
     <Modal
       animationType="slide"
@@ -12,12 +24,22 @@ const AddMealModal = ({ modalVisible, setModalVisible, day, setDay, time, setTim
       <View style={styles.modalContainer}>
         <View style={styles.modalContent}>
           <Text style={styles.modalTitle}>Add Meal</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Time"
-            value={time}
-            onChangeText={setTime}
-          />
+          <TouchableOpacity onPress={() => setShowTimePicker(true)}>
+            <TextInput
+              style={styles.input}
+              placeholder="Time"
+              value={time}
+              editable={false}
+            />
+          </TouchableOpacity>
+          {showTimePicker && (
+            <DateTimePicker
+              value={new Date()}
+              mode="time"
+              display="default"
+              onChange={onTimeChange}
+            />
+          )}
           <Text style={styles.label}>Select Day</Text>
           <View style={styles.daySelector}>
             {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((d) => (
@@ -42,8 +64,12 @@ const AddMealModal = ({ modalVisible, setModalVisible, day, setDay, time, setTim
               </TouchableOpacity>
             ))}
           </View>
-          <Button title="Add Meal" onPress={handleAddMeal} color={'#F59E0B'}/>
-          <Button title="Cancel" onPress={() => setModalVisible(false)} color={'#ddd'}/>
+          <TouchableOpacity style={styles.addButton} onPress={handleAddMeal}>
+            <Text style={styles.addButtonText}>Add Meal</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.cancelButton} onPress={() => setModalVisible(false)}>
+            <Text style={styles.cancelButtonText}>Cancel</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </Modal>
@@ -121,6 +147,28 @@ const styles = StyleSheet.create({
   },
   selectedMealTypeText: {
     color: '#fff',
+  },
+  addButton: {
+    backgroundColor: '#F59E0B',
+    padding: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+    marginVertical: 5,
+  },
+  addButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  cancelButton: {
+    backgroundColor: '#ddd',
+    padding: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+    //marginVertical: 5,
+  },
+  cancelButtonText: {
+    color: '#000',
+    fontWeight: 'bold',
   },
 });
 

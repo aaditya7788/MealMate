@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { fetchMeals } from '../../backend/components/request';
+import { useNavigation } from '@react-navigation/native';
 
 const MealPlannerScreen = () => {
   const [selectedDay, setSelectedDay] = useState('Mon');
@@ -17,6 +18,7 @@ const MealPlannerScreen = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const Navigation = useNavigation();
 
   useEffect(() => {
     const loadMeals = async () => {
@@ -24,7 +26,7 @@ const MealPlannerScreen = () => {
       setError(null);
       try {
         const data = await fetchMeals(selectedDay);
-        console.log('Data:', data);
+        // console.log('Data:', data);
         setMeals((prevMeals) => ({ ...prevMeals, [selectedDay]: data }));
       } catch (err) {
         setError('Failed to load meals');
@@ -89,7 +91,7 @@ const MealPlannerScreen = () => {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Meal Planner</Text>
         <TouchableOpacity style={styles.addButton}>
-          <Ionicons name="add-circle" size={24} color="#F59E0B" />
+          <Ionicons name="add-circle" size={24} color="#F59E0B" onPress={()=>Navigation.navigate('Home')}/>
         </TouchableOpacity>
       </View>
 

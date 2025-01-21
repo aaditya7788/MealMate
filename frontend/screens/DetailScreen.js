@@ -93,7 +93,7 @@ const DetailScreen = ({ backgroundColor = '#fff', homeTextColor = '#fbbf24' }) =
           <TouchableOpacity style={styles.BackButton} onPressOut={() => Navigation.goBack()}>
             <ChevronLeftIcon color={homeTextColor} size={hp(3.5)} strokeWidth={4.5} />
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => setModalVisible(true)}>
+          <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.FavButton}>
             <PlusIcon color={'gray'} size={hp(3.5)} strokeWidth={4.5} />
           </TouchableOpacity>
         </View>
