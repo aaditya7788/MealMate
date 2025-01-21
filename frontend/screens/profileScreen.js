@@ -68,8 +68,8 @@ const ProfileScreen = () => {
 
   const stats = [
     { label: 'Posts', value: '3' },
-    { label: 'Followers', value: '358' },
-    { label: 'Following', value: '287' },
+    { label: 'Likes', value: '358' },
+    { label: 'Reviews', value: '287' },
   ];
 
   const highlights = [
@@ -123,9 +123,8 @@ const ProfileScreen = () => {
         <View style={styles.actionButtons}>
           <TouchableOpacity 
             style={styles.editButton} 
-            onPress={() => navigation.navigate('EditProfile')}
           >
-            <Text style={styles.editButtonText}>Edit Profile</Text>
+            <Text style={styles.editButtonText}>Follow</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.shareButton}>
             <Text style={styles.shareButtonText}>Share Profile</Text>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
   Text,
@@ -9,48 +9,41 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { fetchMeals } from '../../backend/components/request';
 
 const MealPlannerScreen = () => {
   const [selectedDay, setSelectedDay] = useState('Mon');
+  const [meals, setMeals] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-  const mealPlan = {
-    Mon: {
-      breakfast: {
-        title: 'Oatmeal Bowl',
-        calories: '320 kcal',
-        image: require('../../assets/images/logo.png'),
-        time: '8:00 AM',
-      },
-      lunch: {
-        title: 'Chicken Salad',
-        calories: '450 kcal',
-        image: require('../../assets/images/logo.png'),
-        time: '12:30 PM',
-      },
-      dinner: {
-        title: 'Grilled Salmon',
-        calories: '580 kcal',
-        image: require('../../assets/images/logo.png'),
-        time: '7:00 PM',
-      },
-      snacks: {
-        title: 'Greek Yogurt',
-        calories: '150 kcal',
-        image: require('../../assets/images/logo.png'),
-        time: '4:00 PM',
-      },
-    },
-  };
+  useEffect(() => {
+    const loadMeals = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const data = await fetchMeals(selectedDay);
+        console.log('Data:', data);
+        setMeals((prevMeals) => ({ ...prevMeals, [selectedDay]: data }));
+      } catch (err) {
+        setError('Failed to load meals');
+        console.error('Error fetching meals:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadMeals();
+  }, [selectedDay]);
 
   const renderMealCard = (meal, mealType) => (
     <View style={styles.mealCard}>
-      <Image source={meal.image} style={styles.mealImage} />
+      <Image source={{ uri: meal.image }} style={styles.mealImage} />
       <View style={styles.mealInfo}>
         <Text style={styles.mealType}>{mealType}</Text>
         <Text style={styles.mealTitle}>{meal.title}</Text>
         <Text style={styles.mealTime}>{meal.time}</Text>
-        <Text style={styles.mealCalories}>{meal.calories}</Text>
       </View>
       <TouchableOpacity style={styles.editButton}>
         <Ionicons name="pencil" size={20} color="#F59E0B" />
@@ -68,17 +61,23 @@ const MealPlannerScreen = () => {
   );
 
   const renderMealList = () => {
-    if (!mealPlan[selectedDay]) {
+    if (loading) {
       return <ActivityIndicator size="large" color="#F59E0B" />;
+    }
+
+    if (error) {
+      return <Text style={styles.errorText}>{error}</Text>;
+    }
+
+    if (!meals[selectedDay] || meals[selectedDay].length === 0) {
+      return <Text style={styles.noMealsText}>No meals planned for today.</Text>;
     }
 
     return (
       <FlatList
-        data={Object.entries(mealPlan[selectedDay] || {})}
-        keyExtractor={([type]) => type}
-        renderItem={({ item: [type, meal] }) =>
-          renderMealCard(meal, type.charAt(0).toUpperCase() + type.slice(1))
-        }
+        data={meals[selectedDay]}
+        keyExtractor={(item) => item._id}
+        renderItem={({ item }) => renderMealCard(item, item.type)}
         contentContainerStyle={styles.mealList}
       />
     );
@@ -240,6 +239,16 @@ const styles = StyleSheet.create({
   editButton: {
     padding: 5,
   },
+  errorText: {
+    color: 'red',
+    textAlign: 'center',
+    marginVertical: 10,
+  },
+  noMealsText: {
+    textAlign: 'center',
+    marginVertical: 10,
+    color: '#666',
+  },
 });
 
-export default MealPlannerScreen;
+export default MealPlannerScreen;``

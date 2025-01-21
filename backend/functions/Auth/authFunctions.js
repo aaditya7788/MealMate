@@ -1,5 +1,7 @@
+import { Alert } from "react-native";
 import { API_URL } from "../../../Api/config";
 import { saveAuthData } from "../../LocalStorage/auth_store";
+import Toast from "react-native-toast-message";
 
 // Email Validation
 export const validateEmail = (text, setEmail, setEmailError) => {
@@ -72,7 +74,12 @@ export const login = async (email, password) => {
     });
 
     const data = await response.json();
-    console.log('Login Response:', response);  // Log full response
+    console.log('Login Response:', response);
+    Toast.show({
+      type: 'success',
+      text1: 'Login Successful',
+      text2: 'Welcome to MealMate!',
+    });
 
     if (!response.ok) {
       throw new Error(data.message || 'Something went wrong');

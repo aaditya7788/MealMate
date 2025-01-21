@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ScrollView, StyleSheet, View, Text, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { ScrollView, StyleSheet, View, Text, Image, TouchableOpacity, ActivityIndicator, Button } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import { ChevronLeftIcon, PlusIcon } from 'react-native-heroicons/outline';
@@ -8,14 +8,22 @@ import { getCon, hp } from '../../helpers/common';
 import { fetchDetails } from '../../Api/request';
 import { useNavigation } from '@react-navigation/native';
 import Animated, { FadeInRight, RollInLeft } from 'react-native-reanimated';
+import AddMealModal from '../components/AddMealModal';
+import { addMeal } from '../../backend/components/request';
+import { getAuthData } from '../../backend/LocalStorage/auth_store';
 const DetailScreen = ({ backgroundColor = '#fff', homeTextColor = '#fbbf24' }) => {
   const route = useRoute();
   const { recipeId } = route.params || {};
   const Navigation = useNavigation();
 
+
   const [recipe, setRecipe] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [day, setDay] = useState('Mon');
+  const [time, setTime] = useState('');
+  const [mealType, setMealType] = useState('Lunch');
 
   useEffect(() => {
     const loadDetail = async () => {
@@ -32,6 +40,28 @@ const DetailScreen = ({ backgroundColor = '#fff', homeTextColor = '#fbbf24' }) =
     loadDetail();
   }, [recipeId]);
 
+
+  const handleAddMeal = async () => {
+    const authdata = await getAuthData();
+    //console.log('authdata:',authdata._id)
+    try {
+      const mealData = {
+        userId: authdata._id, // Replace with actual userId
+        day,
+        time,
+        type: mealType,
+        title: recipe.strMeal,
+        image: recipe.strMealThumb,
+      };
+      console.log('Adding meal:', mealData);
+      await addMeal(mealData);
+      setModalVisible(false);
+      // Optionally, you can show a success message or refresh the meal list
+    } catch (error) {
+      console.error('Error adding meal:', error);
+    }
+  };
+
   if (loading) {
     return (
       <View style={styles.container}>
@@ -40,13 +70,7 @@ const DetailScreen = ({ backgroundColor = '#fff', homeTextColor = '#fbbf24' }) =
     );
   }
 
-  if (error) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.errorText}>{error}</Text>
-      </View>
-    );
-  }
+
 
   if (!recipe) {
     return (
@@ -69,8 +93,8 @@ const DetailScreen = ({ backgroundColor = '#fff', homeTextColor = '#fbbf24' }) =
           <TouchableOpacity style={styles.BackButton} onPressOut={() => Navigation.goBack()}>
             <ChevronLeftIcon color={homeTextColor} size={hp(3.5)} strokeWidth={4.5} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.FavButton}>
-            <HeartIcon color={'gray'} size={hp(3.5)} strokeWidth={4.5} />
+          <TouchableOpacity onPress={() => setModalVisible(true)}>
+            <PlusIcon color={'gray'} size={hp(3.5)} strokeWidth={4.5} />
           </TouchableOpacity>
         </View>
 
@@ -113,7 +137,17 @@ const DetailScreen = ({ backgroundColor = '#fff', homeTextColor = '#fbbf24' }) =
           ))}
         </View>
 
-        
+        <AddMealModal
+        modalVisible={modalVisible}
+        setModalVisible={setModalVisible}
+        day={day}
+        setDay={setDay}
+        time={time}
+        setTime={setTime}
+        mealType={mealType}
+        setMealType={setMealType}
+        handleAddMeal={handleAddMeal}
+      />
       </ScrollView>
     </View>
   );
