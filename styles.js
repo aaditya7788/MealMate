@@ -1,15 +1,18 @@
 // styles.js
 import { Platform } from 'react-native';
 import { wp } from './helpers/common';
-import { HomeIcon,CalendarIcon, UserCircleIcon } from "react-native-heroicons/outline";
+import { HomeIcon, UserCircleIcon, MagnifyingGlassIcon } from "react-native-heroicons/outline";
 import { theme } from './constants/theme';
 import FoodPlateIcon from './Icons/FoodPlateIcon';
+import UploadCirclePlusIcon from './Icons/UploadCirclePlusIcon';
 
 
 const tabIcons = {
   Home: HomeIcon,
   MealPlanner: FoodPlateIcon,
   Profile: UserCircleIcon,
+  PostRecipe: UploadCirclePlusIcon,
+  Search: MagnifyingGlassIcon,
   
   // Add more screen names and their corresponding icons here
 };

@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { 
   StyleSheet, 
   Text, 
@@ -6,84 +6,84 @@ import {
   Image, 
   TouchableOpacity, 
   FlatList,
-  ActivityIndicator 
+  ActivityIndicator,
 } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { SetProfilePic } from '../components/SetProfilePic';
+import { fetch_UserData } from '../../backend/components/request';
+import { Basic_url } from '../../backend/config/config';
+import { getRecipePosts } from '../../backend/components/postRequest';
 
 const ProfileScreen = () => {
-  const navigation = useNavigation();
   const [userData, setUserData] = useState({
     username: '',
-    profilePic: null,
+    profilePic: '',
     bio: '',
+    stats: [],
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState(null);
+  const [posts, setPosts] = useState([]);
+  const [activeTab, setActiveTab] = useState('posts');
+  const navigation = useNavigation();
 
-  const fetchUserData = useCallback(async () => {
+  const handleFetchuserData = async () => {
     try {
-      setIsLoading(true);
-      setError(null);
-
-      const [name, bio] = await Promise.all([
-        AsyncStorage.getItem('name'),
-        AsyncStorage.getItem('bio'),
-      ]);
-      const profileUrl = await SetProfilePic(Date.now());
-
+      const response = await fetch_UserData();
+      console.log("Fetched user Data:", response);
       setUserData({
-        username: name || 'User',
-        profilePic: profileUrl,
-        bio: bio || 'Food enthusiast 🍳',
+        username: response.name || 'User',
+        profilePic: `${Basic_url}${response.profilepic}`,
+        bio: response.description || 'Food enthusiast 🍳',
+        stats: response.stats || [],
       });
+
+      const postsResponse = await getRecipePosts(response._id);
+      setPosts(postsResponse);
     } catch (error) {
-      console.error('Error fetching user data:', error);
-      setError('Failed to load profile data');
+      console.error("Error fetching user data:", error);
+      setError('Failed to fetch user data');
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  }, []);
+  };
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    await fetchUserData();
+    await handleFetchuserData();
   };
 
   useFocusEffect(
     useCallback(() => {
-      fetchUserData();
-    }, [fetchUserData])
+      handleFetchuserData();
+    }, [])
   );
 
-  const mealPosts = [
-    { id: '1', image: require('../../assets/images/logo.png') },
-    { id: '2', image: require('../../assets/images/logo.png') },
-    { id: '3', image: require('../../assets/images/logo.png') },
-  ];
+  useEffect(() => {
+    handleFetchuserData();
+  }, []);
+
+  const getTotalPosts = () => {
+    return posts.length;
+  };
 
   const stats = [
-    { label: 'Posts', value: '3' },
+    { label: 'Posts', value: getTotalPosts() },
     { label: 'Likes', value: '358' },
     { label: 'Reviews', value: '287' },
   ];
 
-  const highlights = [
-    { id: 'new', title: 'New', isNew: true },
-    { id: 'breakfast', title: 'Breakfast', image: require('../../assets/images/logo.png') },
-    { id: 'lunch', title: 'Lunch', image: require('../../assets/images/logo.png') },
-    { id: 'dinner', title: 'Dinner', image: require('../../assets/images/logo.png') },
-  ];
-
-  const renderMealPost = ({ item }) => (
-    <TouchableOpacity style={styles.mealPost}>
-      <Image source={item.image} style={styles.mealImage} />
-    </TouchableOpacity>
-  );
+  const renderMealPost = ({ item }) => {
+    const img_url = `${Basic_url}${item.image}`;
+    console.log("Image URL:", img_url);
+    return (
+      <TouchableOpacity style={styles.mealPost} onPress={() => navigation.navigate('PostDetails', { postId: item._id })}>
+        <Image source={{ uri: img_url }} style={styles.mealImage} />
+      </TouchableOpacity>
+    );
+  };
 
   const renderProfileInfo = () => (
     <>
@@ -93,11 +93,9 @@ const ProfileScreen = () => {
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Profile</Text>
         <TouchableOpacity>
-          <Ionicons name="settings-outline" size={24} color="black" />
+          <Ionicons name="pencil-sharp" size={24} color="black" onPress={() => navigation.navigate('EditProfile')} />
         </TouchableOpacity>
       </View>
-
-      {error && <Text style={styles.errorText}>{error}</Text>}
 
       <View style={styles.profileSection}>
         <View style={styles.profileInfo}>
@@ -121,10 +119,8 @@ const ProfileScreen = () => {
         </View>
 
         <View style={styles.actionButtons}>
-          <TouchableOpacity 
-            style={styles.editButton} 
-          >
-            <Text style={styles.editButtonText}>Follow</Text>
+          <TouchableOpacity style={styles.editButton}>
+            <Text style={styles.editButtonText} onPress={() => handleFetchuserData()}>Follow</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.shareButton}>
             <Text style={styles.shareButtonText}>Share Profile</Text>
@@ -132,36 +128,18 @@ const ProfileScreen = () => {
         </View>
       </View>
 
-      <View style={styles.highlightsContainer}>
-        <FlatList
-          data={highlights}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <TouchableOpacity style={styles.highlightItem}>
-              {item.isNew ? (
-                <View style={styles.highlightCircle}>
-                  <Text style={styles.plusIcon}>+</Text>
-                </View>
-              ) : (
-                <Image source={item.image} style={styles.highlightImage} />
-              )}
-              <Text style={styles.highlightText}>{item.title}</Text>
-            </TouchableOpacity>
-          )}
-        />
-      </View>
-
       <View style={styles.tabContainer}>
-        <TouchableOpacity style={[styles.tab, styles.activeTab]}>
-          <Ionicons name="grid-outline" size={24} color="#F59E0B" />
+        <TouchableOpacity 
+          style={[styles.tab, activeTab === 'posts' && styles.activeTab]} 
+          onPress={() => setActiveTab('posts')}
+        >
+          <Ionicons name="grid-outline" size={24} color={activeTab === 'posts' ? "#F59E0B" : "black"} />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.tab}>
-          <Ionicons name="bookmark-outline" size={24} color="black" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.tab}>
-          <Ionicons name="heart-outline" size={24} color="black" />
+        <TouchableOpacity 
+          style={[styles.tab, activeTab === 'likes' && styles.activeTab]} 
+          onPress={() => setActiveTab('likes')}
+        >
+          <Ionicons name="heart-outline" size={24} color={activeTab === 'likes' ? "#F59E0B" : "black"} />
         </TouchableOpacity>
       </View>
     </>
@@ -177,10 +155,10 @@ const ProfileScreen = () => {
 
   return (
     <FlatList
-      data={mealPosts}
+      data={activeTab === 'posts' ? posts : []} // Replace [] with likes data when available
       renderItem={renderMealPost}
       numColumns={3}
-      keyExtractor={(item) => item.id}
+      keyExtractor={(item) => item._id}
       ListHeaderComponent={renderProfileInfo}
       contentContainerStyle={styles.container}
       onRefresh={handleRefresh}
@@ -189,14 +167,7 @@ const ProfileScreen = () => {
   );
 };
 
-
-
-
-
-
-
 const styles = StyleSheet.create({
-  // Styles remain unchanged
   container: {
     backgroundColor: '#fff',
   },
@@ -221,6 +192,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   profileImage: {
+    borderWidth: 3,
+    borderColor: '#fbbf24',
     width: 80,
     height: 80,
     borderRadius: 40,
@@ -335,6 +308,7 @@ const styles = StyleSheet.create({
     flex: 1 / 3,
     aspectRatio: 1,
     padding: 1,
+    backgroundColor: '#ddd',
   },
   mealImage: {
     width: '100%',

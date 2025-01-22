@@ -2,32 +2,64 @@ import axios from 'axios';
 import { getAuthData } from '../LocalStorage/auth_store';
 import { Basic_url } from '../config/config';
 
-export const fetchUserData = async () => {
+export const fetch_UserData = async () => {
   try {
     const authData = await getAuthData();
     if (!authData || !authData.authToken) {
       throw new Error('No auth token found');
     }
 
-    const response = await axios.get(`${Basic_url}/api/users/user`, {
+    const response = await axios.get(`${Basic_url}/api/users/userinfo`, {
       headers: {
-        Authorization: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NzhkMGEzOTFiMWM2MWUxODdkY2U3YjIiLCJpYXQiOjE3MzcyOTY0NDF9.q7uLDSukCMK9C8sRqYqZetim--DzjqjDpWrxwsaSXKI',
-      }
+        Authorization: `${authData.authToken}`,
+      },
     });
+
+    if (response.status !== 200) {
+      throw new Error('Failed to fetch user data');
+    }
+
     return response.data;
   } catch (error) {
-    console.error('Error fetching data:', error);
+    console.error('Error fetching user data:', error);
     throw error;
   }
 };
 
 export const profile_pic = async () => {
   try {
-    const data = await fetchUserData();
+    const data = await fetch_UserData();
     const img_url = `${Basic_url}${data.profilepic}`;
     return img_url;
   } catch (error) {
     console.error('Error fetching data:', error);
+    throw error;
+  }
+};
+
+
+
+export const UpdateProfile = async (profileData) => {
+  try {
+    const authData = await getAuthData();
+    if (!authData || !authData.authToken) {
+      throw new Error('No auth token found');
+    }
+
+    const response = await axios.put(`${Basic_url}/api/users/updateProfile`, profileData, {
+      headers: {
+        Authorization: authData.authToken,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (response.status !== 200) {
+      throw new Error('Failed to update profile');
+    }
+
+    return response.data;
+  } catch (error) {
+    console.error('Error updating profile:', error);
     throw error;
   }
 };

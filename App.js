@@ -13,6 +13,9 @@ import SignUpScreen from './frontend/Auth/SignUpScreen';
 import DetailScreen from './frontend/screens/DetailScreen';
 import MealPlannerScreen from './frontend/screens/MealPlannerScreen';
 import { getAuthData } from './backend/LocalStorage/auth_store';
+import EditProfileScreen from './frontend/screens/EditProfileScreen';
+import PostRecipeScreen from './frontend/screens/PostRecipeScreen';
+import PostDetailScreen from './frontend/screens/PostDetailScreen';
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
@@ -20,8 +23,10 @@ function MainTabs() {
   return (
     <Tab.Navigator screenOptions={tabNavigatorScreenOptions}>
       <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="Profile" component={profileScreen} />
+      <Tab.Screen name="Search" component={SearchScreen} />
+      <Tab.Screen name="PostRecipe" component={PostRecipeScreen} />
       <Tab.Screen name="MealPlanner" component={MealPlannerScreen} />
+      <Tab.Screen name="Profile" component={profileScreen} />
     </Tab.Navigator>
   );
 }
@@ -62,10 +67,11 @@ export default function App() {
           options={{ gestureEnabled: false }}
         />
         <Stack.Screen name="Details" component={DetailScreen} />
-        <Stack.Screen name="Search" component={SearchScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Signup" component={SignUpScreen} />
         <Stack.Screen name="Profile" component={profileScreen} />
+        <Stack.Screen name="EditProfile" component={EditProfileScreen} />
+        <Stack.Screen name="PostDetails" component={PostDetailScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BackHandler, ScrollView, StyleSheet, TextInput, TouchableOpacity, Pressable, View, Text, Image } from 'react-native';
+import { BackHandler, ScrollView, StyleSheet, TextInput, TouchableOpacity, Pressable, View, Text, Image, RefreshControl } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import { hp, wp, getColumnCount } from '../../helpers/common';
@@ -10,54 +10,59 @@ import Animated, { FadeInRight, FadeInDown } from 'react-native-reanimated';
 import { useNavigation } from '@react-navigation/native';
 import { clearAuthData, getAuthData } from '../../backend/LocalStorage/auth_store';
 import { Basic_url } from '../../backend/config/config';
+
 function HomeScreen({ backgroundColor = '#fff', homeTextColor = '#fbbf24' }) {
   const [selectedCategory, setSelectedCategory] = useState('Vegetarian');
   const [categories, setCategories] = useState([]);
   const [recipes, setRecipes] = useState([]);
   const [userData, setUserData] = useState(null);
   const [profilePic, setProfilePic] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   const navigation = useNavigation();
   const ColumnCount = getColumnCount();
 
   // Fetch user data
+  const fetchUserData = async () => {
+    const data = await getAuthData();
+    setUserData(data);
+    setProfilePic(`${Basic_url}${data?.profilepic}` || null);
+  };
+
   useEffect(() => {
-    const fetchUserData = async () => {
-      const data = await getAuthData();
-      setUserData(data);
-      setProfilePic(`${Basic_url}${data?.profilepic}` || null);
-    };
     fetchUserData();
   }, []);
 
   // Fetch categories
+  const loadCategories = async () => {
+    try {
+      const categoryData = await fetchCategories();
+      const filteredCategories = categoryData.categories
+        .filter((category) => !['Beef', 'Lamb', 'Pork'].includes(category.strCategory))
+        .sort((a, b) => (a.strCategory === 'Vegetarian' ? -1 : b.strCategory === 'Vegetarian' ? 1 : 0));
+      setCategories(filteredCategories);
+    } catch (error) {
+      console.error('Error loading categories:', error);
+    }
+  };
+
   useEffect(() => {
-    const loadCategories = async () => {
-      try {
-        const categoryData = await fetchCategories();
-        const filteredCategories = categoryData.categories
-          .filter((category) => !['Beef', 'Lamb', 'Pork'].includes(category.strCategory))
-          .sort((a, b) => (a.strCategory === 'Vegetarian' ? -1 : b.strCategory === 'Vegetarian' ? 1 : 0));
-        setCategories(filteredCategories);
-      } catch (error) {
-        console.error('Error loading categories:', error);
-      }
-    };
     loadCategories();
   }, []);
 
   // Fetch recipes when selectedCategory changes
-  useEffect(() => {
-    const loadRecipes = async () => {
-      if (selectedCategory) {
-        try {
-          const recipesData = await fetchRecipes(selectedCategory);
-          setRecipes(recipesData.meals || []);
-        } catch (error) {
-          console.error('Error loading recipes:', error);
-        }
+  const loadRecipes = async () => {
+    if (selectedCategory) {
+      try {
+        const recipesData = await fetchRecipes(selectedCategory);
+        setRecipes(recipesData.meals || []);
+      } catch (error) {
+        console.error('Error loading recipes:', error);
       }
-    };
+    }
+  };
+
+  useEffect(() => {
     loadRecipes();
   }, [selectedCategory]);
 
@@ -79,10 +84,22 @@ function HomeScreen({ backgroundColor = '#fff', homeTextColor = '#fbbf24' }) {
     }
   };
 
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchUserData();
+    await loadCategories();
+    await loadRecipes();
+    setRefreshing(false);
+  };
+
   return (
     <View style={[styles.container, { backgroundColor }]}>
       <StatusBar style="dark" />
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollViewContent}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollViewContent}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      >
         {/* Avatar and Logout Icon */}
         <View style={styles.avatarContainer}>
           <Image
@@ -192,7 +209,7 @@ const styles = StyleSheet.create({
     height: 60,
     width: 60,
     borderRadius: 999,
-    borderWidth:2,
+    borderWidth: 2,
     borderColor: '#fbbf24',
   },
   greetingContainer: {

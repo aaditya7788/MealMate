@@ -1,69 +1,44 @@
 import React, { useState, useEffect } from 'react';
-import { ScrollView, StyleSheet, View, Text, Image, TouchableOpacity, ActivityIndicator, Dimensions } from 'react-native';
-import { useRoute } from '@react-navigation/native';
-import { StatusBar } from 'expo-status-bar';
+import { ScrollView, StyleSheet, View, Text, Image, TouchableOpacity, StatusBar, ActivityIndicator } from 'react-native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { ChevronLeftIcon, PlusIcon } from 'react-native-heroicons/outline';
-import { getCon, hp } from '../../helpers/common';
-import { fetchDetails } from '../../Api/request';
-import { useNavigation } from '@react-navigation/native';
+import { hp } from '../../helpers/common';
 import Animated, { FadeInRight } from 'react-native-reanimated';
 import AddMealModal from '../components/AddMealModal';
-import { addMeal } from '../../backend/components/request';
-import { getAuthData } from '../../backend/LocalStorage/auth_store';
-
-const { width } = Dimensions.get('window');
-
-const DetailScreen = ({ backgroundColor = '#fff', homeTextColor = '#fbbf24' }) => {
-  const route = useRoute();
-  const { recipeId } = route.params || {};
+import { getSpecificPost } from '../../backend/components/postRequest';
+import { Basic_url } from '../../backend/config/config';
+const PostDetailScreen = ({ backgroundColor = '#fff', homeTextColor = '#fbbf24' }) => {
   const Navigation = useNavigation();
+  const route = useRoute();
+  const { postId } = route.params;
+  console.log('Recipe ID:', postId);
 
   const [recipe, setRecipe] = useState(null);
+  const [image, setimage] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [day, setDay] = useState('Mon');
   const [time, setTime] = useState('');
   const [mealType, setMealType] = useState('Lunch');
 
   useEffect(() => {
-    const loadDetail = async () => {
+    const fetchRecipeDetail = async () => {
       try {
-        const data = await fetchDetails(recipeId);
-        setRecipe(data.meals[0]);
+        const response = await getSpecificPost(postId);
+        setRecipe(response);
+        setimage(`${Basic_url}${response.image} `);
       } catch (error) {
-        console.error('Error loading recipe:', error);
-        setError('Error loading recipe');
+        console.error('Error fetching recipe details:', error);
       } finally {
         setLoading(false);
       }
     };
-    loadDetail();
-  }, [recipeId]);
-
-  const handleAddMeal = async () => {
-    const authdata = await getAuthData();
-    try {
-      const mealData = {
-        userId: authdata._id, // Replace with actual userId
-        day,
-        time,
-        type: mealType,
-        title: recipe.strMeal,
-        image: recipe.strMealThumb,
-      };
-      console.log('Adding meal:', mealData);
-      await addMeal(mealData);
-      setModalVisible(false);
-      // Optionally, you can show a success message or refresh the meal list
-    } catch (error) {
-      console.error('Error adding meal:', error);
-    }
-  };
+    fetchRecipeDetail();
+  }, [postId]);
 
   if (loading) {
     return (
-      <View style={styles.container}>
+      <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={homeTextColor} />
       </View>
     );
@@ -71,8 +46,8 @@ const DetailScreen = ({ backgroundColor = '#fff', homeTextColor = '#fbbf24' }) =
 
   if (!recipe) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.errorText}>No recipe found</Text>
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>Failed to load recipe details</Text>
       </View>
     );
   }
@@ -83,7 +58,7 @@ const DetailScreen = ({ backgroundColor = '#fff', homeTextColor = '#fbbf24' }) =
 
       <ScrollView contentContainerStyle={styles.mainScrollContainer}>
         {/* Recipe Image */}
-        <Image source={{ uri: recipe.strMealThumb }} style={styles.image} />
+        <Image source={{ uri: image }} style={styles.image} />
 
         {/* Back and Favorite Buttons */}
         <View style={styles.Buttons}>
@@ -97,8 +72,8 @@ const DetailScreen = ({ backgroundColor = '#fff', homeTextColor = '#fbbf24' }) =
 
         {/* Recipe Name and Type */}
         <View style={styles.RecipeName}>
-          <Text style={styles.Name}>{recipe.strMeal}</Text>
-          <Text style={styles.RecipeType}>{recipe.strArea}</Text>
+          <Text style={styles.Name}>{recipe.name}</Text>
+          <Text style={styles.RecipeType}>{recipe.dietType}</Text>
         </View>
 
         {/* Ingredients Horizontal ScrollView */}
@@ -108,26 +83,24 @@ const DetailScreen = ({ backgroundColor = '#fff', homeTextColor = '#fbbf24' }) =
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ flexGrow: 0 }}
         >
-          {Object.keys(recipe)
-            .filter(key => key.startsWith('strIngredient') && recipe[key])
-            .map((key, index) => (
-              <Animated.View key={index} style={styles.ingredientItem} entering={FadeInRight.springify().delay(100*index)}>
-                <Image
-                  style={styles.ingredientImage}
-                  source={{ uri: `https://www.themealdb.com/images/ingredients/${recipe[key].toLowerCase()}.png` }}
-                />
-                <View style={styles.ingredientDetails}>
-                  <Text style={styles.ingredientName}>{recipe[key]}</Text>
-                  <Text style={styles.ingredientMeasure}>{recipe[`strMeasure${index + 1}`]}</Text>
-                </View>
-              </Animated.View>
-            ))}
+          {recipe.ingredients.map((ingredient, index) => (
+            <Animated.View key={index} style={styles.ingredientItem} entering={FadeInRight.springify().delay(100*index)}>
+              <Image
+                style={styles.ingredientImage}
+                source={{ uri: `https://www.themealdb.com/images/ingredients/${ingredient.name.toLowerCase()}.png` }}
+              />
+              <View style={styles.ingredientDetails}>
+                <Text style={styles.ingredientName}>{ingredient.name}</Text>
+                <Text style={styles.ingredientMeasure}>{ingredient.quantity}</Text>
+              </View>
+            </Animated.View>
+          ))}
         </ScrollView>
 
         {/* Instructions Section */}
         <View style={styles.instructionsContainer}>
           <Text style={styles.sectionTitle}>Instructions</Text>
-          {recipe.strInstructions.split('\n').map((line, index) => (
+          {recipe.instructions.split('\n').map((line, index) => (
             <Text key={index} style={styles.instructionText}>
               {line}
             </Text>
@@ -143,7 +116,7 @@ const DetailScreen = ({ backgroundColor = '#fff', homeTextColor = '#fbbf24' }) =
           setTime={setTime}
           mealType={mealType}
           setMealType={setMealType}
-          handleAddMeal={handleAddMeal}
+          handleAddMeal={() => {}}
         />
       </ScrollView>
     </View>
@@ -160,19 +133,21 @@ const styles = StyleSheet.create({
   mainScrollContainer: {
     flexGrow: 1,
     marginBottom: 0,
-    alignItems: 'center',
   },
   image: {
-    width: width * 0.95,
-    height: width * 0.95,
+    justifyContent: 'center',
+    alignSelf: 'center',
+    width: 200,
+    height: 200,
     borderRadius: 50,
-    marginVertical: 20,
+    padding: 190,
+    backgroundColor: 'black',
   },
   Buttons: {
     position: 'absolute',
-    top: 40,
-    left: 20,
-    right: 20,
+    marginTop: 20,
+    alignSelf: 'center',
+    width: '90%',
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
@@ -186,10 +161,10 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderRadius: 999,
   },
-    RecipeName: {
-    justifyContent: 'flex-start',
-    alignItems: 'flex-start',
+  RecipeName: {
+    justifyContent:'flex-start',
     marginLeft: 30,
+    justifyContent: 'flex-start',
   },
   Name: {
     marginTop: 30,
@@ -260,4 +235,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default DetailScreen;
+export default PostDetailScreen;
