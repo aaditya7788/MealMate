@@ -71,3 +71,23 @@ export const getRecipePosts = async (uid) => {
       throw error;
     }
   };
+
+  export const searchIngredients = async (query) => {
+    try {
+      const response = await axios.get(`${Basic_url}/api/ingredients/search/${query}`, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+  
+      if (response.status !== 200) {
+        throw new Error('Failed to search ingredients');
+      }
+  
+      return response.data;
+    } catch (error) {
+      console.error('Error searching ingredients:', error);
+      throw error;
+    }
+  };
+  

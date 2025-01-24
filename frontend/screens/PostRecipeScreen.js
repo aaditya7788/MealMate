@@ -5,15 +5,15 @@ import {
   View,
   TextInput,
   TouchableOpacity,
-  ScrollView,
   Image,
   RefreshControl,
+  FlatList,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { postRecipe, uploadRecipeImage } from '../../backend/components/postRequest';
+import { postRecipe, uploadRecipeImage, searchIngredients } from '../../backend/components/postRequest';
 import { getAuthData } from '../../backend/LocalStorage/auth_store';
-import { useNavigation } from '@react-navigation/native';
 
 const PostRecipeScreen = () => {
   const [image, setImage] = useState(null);
@@ -23,9 +23,8 @@ const PostRecipeScreen = () => {
   const [ingredients, setIngredients] = useState([{ name: '', quantity: '' }]);
   const [instructions, setInstructions] = useState('');
   const [refreshing, setRefreshing] = useState(false);
+  const [searchResults, setSearchResults] = useState([]);
 
-  const navigation = useNavigation();
-  
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -49,12 +48,25 @@ const PostRecipeScreen = () => {
     setIngredients(newIngredients);
   };
 
+  const handleSearchIngredients = async (query) => {
+    if (query.length > 0) {
+      try {
+        const results = await searchIngredients(query);
+        setSearchResults(results);
+      } catch (error) {
+        console.error('Error searching ingredients:', error);
+      }
+    } else {
+      setSearchResults([]);
+    }
+  };
+
   const handleSubmit = async () => {
     if (!image) {
       Alert.alert('Error', 'Please select an image');
       return;
     }
-  
+
     const authdata = await getAuthData();
     const recipeData = {
       uid: authdata._id, // Replace with actual UID
@@ -64,14 +76,13 @@ const PostRecipeScreen = () => {
       instructions,
       ingredients,
     };
-  
+
     try {
       // Step 1: Create the post without the image to get the post_id
       const response = await postRecipe(recipeData);
-    //   console.log('Recipe successfully:', response);
       const postId = response.post._id;
-    //   console.log('Recipe posted successfully:', postId);
-  
+      console.log('Recipe posted successfully:', postId);
+
       // Step 2: Rename the image file to post_id.format
       if (image) {
         const filename = `${postId}.jpg`; // Assuming the image is in jpg format
@@ -79,7 +90,7 @@ const PostRecipeScreen = () => {
         const match = /\.(\w+)$/.exec(image.split('/').pop());
         const type = match ? `image/${match[1]}` : `image`;
         formData.append('image', { uri: image, name: filename, type });
-  
+
         // Step 3: Upload the image with the new name
         const imageResponse = await uploadRecipeImage(postId, formData);
         console.log('Image uploaded successfully:', imageResponse);
@@ -98,134 +109,156 @@ const PostRecipeScreen = () => {
     setMealType('Breakfast');
     setIngredients([{ name: '', quantity: '' }]);
     setInstructions('');
+    setSearchResults([]);
     setTimeout(() => {
       setRefreshing(false);
     }, 2000);
   };
 
   return (
-    <ScrollView
+    <FlatList
       style={styles.container}
-      contentContainerStyle={{ flexGrow: 1 }}
+      data={[]}
+      ListHeaderComponent={
+        <View style={{ flex: 1 }}>
+          <View style={styles.header}>
+            <Text style={styles.headerTitle}>Post Recipe</Text>
+          </View>
+
+          <TouchableOpacity style={styles.imagePicker} onPress={pickImage}>
+            {image ? (
+              <Image source={{ uri: image }} style={styles.image} />
+            ) : (
+              <View style={styles.imagePlaceholder}>
+                <Ionicons name="add" size={50} color="#ccc" />
+                <Text style={styles.imagePickerText}>Pick an image</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+
+          <View style={styles.nameContainer}>
+            <Text style={styles.label}>Recipe Name</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter recipe name"
+              value={recipeName}
+              onChangeText={setRecipeName}
+            />
+          </View>
+
+          <View style={styles.dietTypeContainer}>
+            <Text style={styles.label}>Diet Type</Text>
+            {['Veg', 'Non-Veg', 'Vegan'].map((type) => (
+              <TouchableOpacity
+                key={type}
+                style={[
+                  styles.dietTypeButton,
+                  dietType === type && styles.selectedDietType,
+                ]}
+                onPress={() => setDietType(type)}
+              >
+                <Text
+                  style={[
+                    styles.dietTypeText,
+                    dietType === type && styles.selectedDietTypeText,
+                  ]}
+                >
+                  {type}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          <View style={styles.mealTypeContainer}>
+            <Text style={styles.label}>Meal Type</Text>
+            {['Breakfast', 'Lunch', 'Dinner'].map((type) => (
+              <TouchableOpacity
+                key={type}
+                style={[
+                  styles.mealTypeButton,
+                  mealType === type && styles.selectedMealType,
+                ]}
+                onPress={() => setMealType(type)}
+              >
+                <Text
+                  style={[
+                    styles.mealTypeText,
+                    mealType === type && styles.selectedMealTypeText,
+                  ]}
+                >
+                  {type}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          <View style={styles.ingredientsContainer}>
+            <Text style={styles.label}>Ingredients</Text>
+            {ingredients.map((ingredient, index) => (
+              <View key={index} style={styles.ingredientRow}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Ingredient"
+                  value={ingredient.name}
+                  onChangeText={(text) => {
+                    handleIngredientChange(index, 'name', text);
+                    handleSearchIngredients(text);
+                  }}
+                />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Quantity"
+                  value={ingredient.quantity}
+                  onChangeText={(text) =>
+                    handleIngredientChange(index, 'quantity', text)
+                  }
+                />
+              </View>
+            ))}
+            <TouchableOpacity onPress={handleAddIngredient}>
+              <Text style={styles.addIngredientText}>+ Add Ingredient</Text>
+            </TouchableOpacity>
+          </View>
+
+          {searchResults.length > 0 && (
+            <View style={styles.searchResultsContainer}>
+              {searchResults.map((result, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.searchResultItem}
+                  onPress={() => {
+                    const newIngredients = [...ingredients];
+                    newIngredients[ingredients.length - 1].name = result.name;
+                    setIngredients(newIngredients);
+                    setSearchResults([]);
+                  }}
+                >
+                  <Text style={styles.searchResultText}>{result.name}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+
+          <View style={styles.instructionsContainer}>
+            <Text style={styles.label}>Instructions</Text>
+            <TextInput
+              style={[styles.input, styles.instructionsInput]}
+              multiline
+              placeholder="Enter instructions"
+              value={instructions}
+              onChangeText={setInstructions}
+            />
+          </View>
+
+          <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+            <Text style={styles.submitButtonText}>Submit Recipe</Text>
+          </TouchableOpacity>
+        </View>
+      }
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
       }
-    >
-      <View style={{ flex: 1 }}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Post Recipe</Text>
-        </View>
-
-        <TouchableOpacity style={styles.imagePicker} onPress={pickImage}>
-          {image ? (
-            <Image source={{ uri: image }} style={styles.image} />
-          ) : (
-            <View style={styles.imagePlaceholder}>
-              <Ionicons name="add" size={50} color="#ccc" />
-              <Text style={styles.imagePickerText}>Pick an image</Text>
-            </View>
-          )}
-        </TouchableOpacity>
-
-        <View style={styles.nameContainer}>
-          <Text style={styles.label}>Recipe Name</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter recipe name"
-            value={recipeName}
-            onChangeText={setRecipeName}
-          />
-        </View>
-
-        <View style={styles.dietTypeContainer}>
-          <Text style={styles.label}>Diet Type</Text>
-          {['Veg', 'Non-Veg', 'Vegan'].map((type) => (
-            <TouchableOpacity
-              key={type}
-              style={[
-                styles.dietTypeButton,
-                dietType === type && styles.selectedDietType,
-              ]}
-              onPress={() => setDietType(type)}
-            >
-              <Text
-                style={[
-                  styles.dietTypeText,
-                  dietType === type && styles.selectedDietTypeText,
-                ]}
-              >
-                {type}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        <View style={styles.mealTypeContainer}>
-          <Text style={styles.label}>Meal Type</Text>
-          {['Breakfast', 'Lunch', 'Dinner'].map((type) => (
-            <TouchableOpacity
-              key={type}
-              style={[
-                styles.mealTypeButton,
-                mealType === type && styles.selectedMealType,
-              ]}
-              onPress={() => setMealType(type)}
-            >
-              <Text
-                style={[
-                  styles.mealTypeText,
-                  mealType === type && styles.selectedMealTypeText,
-                ]}
-              >
-                {type}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        <View style={styles.ingredientsContainer}>
-          <Text style={styles.label}>Ingredients</Text>
-          {ingredients.map((ingredient, index) => (
-            <View key={index} style={styles.ingredientRow}>
-              <TextInput
-                style={styles.input}
-                placeholder="Ingredient"
-                value={ingredient.name}
-                onChangeText={(text) =>
-                  handleIngredientChange(index, 'name', text)
-                }
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="Quantity"
-                value={ingredient.quantity}
-                onChangeText={(text) =>
-                  handleIngredientChange(index, 'quantity', text)
-                }
-              />
-            </View>
-          ))}
-          <TouchableOpacity onPress={handleAddIngredient}>
-            <Text style={styles.addIngredientText}>+ Add Ingredient</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.instructionsContainer}>
-          <Text style={styles.label}>Instructions</Text>
-          <TextInput
-            style={[styles.input, styles.instructionsInput]}
-            multiline
-            placeholder="Enter instructions"
-            value={instructions}
-            onChangeText={setInstructions}
-          />
-        </View>
-
-        <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-          <Text style={styles.submitButtonText}>Submit Recipe</Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+    />
   );
 };
 
@@ -331,6 +364,22 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
   },
+  searchResultsContainer: {
+    backgroundColor: '#fff',
+    borderColor: '#ddd',
+    borderWidth: 1,
+    borderRadius: 5,
+    marginTop: 10,
+    padding: 10,
+  },
+  searchResultItem: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
+  },
+  searchResultText: {
+    fontSize: 16,
+  },
   instructionsContainer: {
     marginBottom: 20,
   },
@@ -352,4 +401,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default PostRecipeScreen;
+export default PostRecipeScreen; 

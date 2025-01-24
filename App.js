@@ -16,6 +16,7 @@ import { getAuthData } from './backend/LocalStorage/auth_store';
 import EditProfileScreen from './frontend/screens/EditProfileScreen';
 import PostRecipeScreen from './frontend/screens/PostRecipeScreen';
 import PostDetailScreen from './frontend/screens/PostDetailScreen';
+import FeedScreen from './frontend/screens/FeedScreen';
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
@@ -23,7 +24,7 @@ function MainTabs() {
   return (
     <Tab.Navigator screenOptions={tabNavigatorScreenOptions}>
       <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="Search" component={SearchScreen} />
+      <Tab.Screen name="Feed" component={FeedScreen} />
       <Tab.Screen name="PostRecipe" component={PostRecipeScreen} />
       <Tab.Screen name="MealPlanner" component={MealPlannerScreen} />
       <Tab.Screen name="Profile" component={profileScreen} />

@@ -10,7 +10,7 @@ import Animated, { FadeInRight } from 'react-native-reanimated';
 import AddMealModal from '../components/AddMealModal';
 import { addMeal } from '../../backend/components/request';
 import { getAuthData } from '../../backend/LocalStorage/auth_store';
-
+import { Basic_url } from '../../backend/config/config';
 const { width } = Dimensions.get('window');
 
 const DetailScreen = ({ backgroundColor = '#fff', homeTextColor = '#fbbf24' }) => {
@@ -114,7 +114,7 @@ const DetailScreen = ({ backgroundColor = '#fff', homeTextColor = '#fbbf24' }) =
               <Animated.View key={index} style={styles.ingredientItem} entering={FadeInRight.springify().delay(100*index)}>
                 <Image
                   style={styles.ingredientImage}
-                  source={{ uri: `https://www.themealdb.com/images/ingredients/${recipe[key].toLowerCase()}.png` }}
+                  source={{ uri: `${Basic_url}/storage/ingredients/${recipe[key]}.png` }}
                 />
                 <View style={styles.ingredientDetails}>
                   <Text style={styles.ingredientName}>{recipe[key]}</Text>
