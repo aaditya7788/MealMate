@@ -1,12 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { ScrollView, StyleSheet, View, Text, Image, TouchableOpacity, StatusBar, ActivityIndicator } from 'react-native';
+import { ScrollView, StyleSheet, View, Text, Image, TouchableOpacity, StatusBar, ActivityIndicator, Dimensions } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { ChevronLeftIcon, PlusIcon } from 'react-native-heroicons/outline';
 import { hp } from '../../helpers/common';
 import Animated, { FadeInRight } from 'react-native-reanimated';
 import AddMealModal from '../components/AddMealModal';
 import { getSpecificPost } from '../../backend/components/postRequest';
+import { addMeal } from '../../backend/components/request';
+import { getAuthData } from '../../backend/LocalStorage/auth_store';
 import { Basic_url } from '../../backend/config/config';
+
+const { width, height } = Dimensions.get('window');
+
 const PostDetailScreen = ({ backgroundColor = '#fff', homeTextColor = '#fbbf24' }) => {
   const Navigation = useNavigation();
   const route = useRoute();
@@ -14,7 +19,7 @@ const PostDetailScreen = ({ backgroundColor = '#fff', homeTextColor = '#fbbf24' 
   console.log('Recipe ID:', postId);
 
   const [recipe, setRecipe] = useState(null);
-  const [image, setimage] = useState(null);
+  const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [day, setDay] = useState('Mon');
@@ -26,7 +31,7 @@ const PostDetailScreen = ({ backgroundColor = '#fff', homeTextColor = '#fbbf24' 
       try {
         const response = await getSpecificPost(postId);
         setRecipe(response);
-        setimage(`${Basic_url}${response.image} `);
+        setImage(`${Basic_url}${response.image}`);
       } catch (error) {
         console.error('Error fetching recipe details:', error);
       } finally {
@@ -35,6 +40,28 @@ const PostDetailScreen = ({ backgroundColor = '#fff', homeTextColor = '#fbbf24' 
     };
     fetchRecipeDetail();
   }, [postId]);
+
+  const handleAddMeal = async () => {
+    const authdata = await getAuthData();
+    try {
+      const mealData = {
+        userId: authdata._id, // Replace with actual userId
+        day,
+        time,
+        mealType, // Use mealType instead of meal_type
+        title: recipe.name,
+        image: recipe.image,
+        type: 'post',
+      };
+      // console.log('Adding meal:', mealData);
+      await addMeal(mealData);
+      Navigation.navigate('MealPlanner');
+      setModalVisible(false);
+      // Optionally, you can show a success message or refresh the meal list
+    } catch (error) {
+      console.error('Error adding meal:', error);
+    }
+  };
 
   if (loading) {
     return (
@@ -54,8 +81,7 @@ const PostDetailScreen = ({ backgroundColor = '#fff', homeTextColor = '#fbbf24' 
 
   return (
     <View style={[styles.container, { backgroundColor }]}>
-      <StatusBar style='light' />
-
+      
       <ScrollView contentContainerStyle={styles.mainScrollContainer}>
         {/* Recipe Image */}
         <Image source={{ uri: image }} style={styles.image} />
@@ -116,7 +142,7 @@ const PostDetailScreen = ({ backgroundColor = '#fff', homeTextColor = '#fbbf24' 
           setTime={setTime}
           mealType={mealType}
           setMealType={setMealType}
-          handleAddMeal={() => {}}
+          handleAddMeal={handleAddMeal}
         />
       </ScrollView>
     </View>
@@ -126,7 +152,7 @@ const PostDetailScreen = ({ backgroundColor = '#fff', homeTextColor = '#fbbf24' 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    marginTop: 6,
+    marginTop: 32,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -135,13 +161,10 @@ const styles = StyleSheet.create({
     marginBottom: 0,
   },
   image: {
-    justifyContent: 'center',
-    alignSelf: 'center',
-    width: 200,
-    height: 200,
+    width: width * 0.95,
+    height: width * 0.95,
     borderRadius: 50,
-    padding: 190,
-    backgroundColor: 'black',
+    alignSelf: 'center',
   },
   Buttons: {
     position: 'absolute',
@@ -162,9 +185,8 @@ const styles = StyleSheet.create({
     borderRadius: 999,
   },
   RecipeName: {
-    justifyContent:'flex-start',
-    marginLeft: 30,
     justifyContent: 'flex-start',
+    marginLeft: 30,
   },
   Name: {
     marginTop: 30,

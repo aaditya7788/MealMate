@@ -40,7 +40,7 @@ export const getAuthData = async () => {
       return null;
     }
 
-    console.log("Saved Auth Data: ", JSON.stringify(authData, null, 2));  // JSON.stringify formats the output
+    //console.log("Saved Auth Data: ", JSON.stringify(authData, null, 2));  // JSON.stringify formats the output
     return authData;
   } catch (error) {
     console.error("Error getting auth data from AsyncStorage:", error);

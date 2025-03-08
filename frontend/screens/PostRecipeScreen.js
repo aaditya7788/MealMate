@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { postRecipe, uploadRecipeImage, searchIngredients } from '../../backend/components/postRequest';
 import { getAuthData } from '../../backend/LocalStorage/auth_store';
+import { useNavigation } from '@react-navigation/native';
 
 const PostRecipeScreen = () => {
   const [image, setImage] = useState(null);
@@ -24,6 +25,8 @@ const PostRecipeScreen = () => {
   const [instructions, setInstructions] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
+
+  const navigation = useNavigation();
 
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -65,6 +68,10 @@ const PostRecipeScreen = () => {
     if (!image) {
       Alert.alert('Error', 'Please select an image');
       return;
+    }
+    else{
+      Alert.alert('Recipe Posted', 'Your Recipe has been posted successfully');
+      navigation.navigate('Profile');
     }
 
     const authdata = await getAuthData();

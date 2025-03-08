@@ -48,12 +48,14 @@ const DetailScreen = ({ backgroundColor = '#fff', homeTextColor = '#fbbf24' }) =
         userId: authdata._id, // Replace with actual userId
         day,
         time,
-        type: mealType,
+        mealType,
         title: recipe.strMeal,
         image: recipe.strMealThumb,
+        type: 'recipe',
       };
       console.log('Adding meal:', mealData);
       await addMeal(mealData);
+      Navigation.navigate('MealPlanner');
       setModalVisible(false);
       // Optionally, you can show a success message or refresh the meal list
     } catch (error) {

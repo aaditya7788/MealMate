@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { BackHandler, StyleSheet, Text, View, TextInput, TouchableOpacity, Image } from 'react-native';
+import { BackHandler, StyleSheet, Text, View, TextInput, TouchableOpacity, Image, Alert } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
 import GoogleIcon from '../../Icons/GoogleIcon';
 import { validateEmail, validatePassword, login } from '../../backend/functions/Auth/authFunctions';
+import { Basic_url } from '../../backend/config/config';
 
 const LoginScreen = () => {
   const navigation = useNavigation();

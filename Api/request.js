@@ -13,6 +13,19 @@ export const fetchCategories = async () => {
   }
 };
 
+// Define the API request function to fetch categories
+export const fetchsearchRecipes = async (name) => {
+  const url = `https://www.themealdb.com/api/json/v1/1/search.php?s=${name}`; // Define the URL
+  try {
+    console.log(`Fetching categories from: ${url}`); // Log the URL
+    const response = await axios.get(url);
+    return response.data; // Return the data property of the response
+  } catch (error) {
+    console.error('Error fetching categories:', error);
+    throw error; // Rethrow the error to handle it where the function is called
+  }
+};
+
 // Define the API request function to fetch recipes based on category
 export const fetchRecipes = async (category) => {
   const url = `https://www.themealdb.com/api/json/v1/1/filter.php?c=${category}`; // Define the URL

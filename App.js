@@ -17,6 +17,7 @@ import EditProfileScreen from './frontend/screens/EditProfileScreen';
 import PostRecipeScreen from './frontend/screens/PostRecipeScreen';
 import PostDetailScreen from './frontend/screens/PostDetailScreen';
 import FeedScreen from './frontend/screens/FeedScreen';
+import searchUserProfile from './frontend/screens/searchUserProfile';
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
@@ -71,8 +72,11 @@ export default function App() {
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Signup" component={SignUpScreen} />
         <Stack.Screen name="Profile" component={profileScreen} />
+        <Stack.Screen name="SearchProfile" component={searchUserProfile} />
         <Stack.Screen name="EditProfile" component={EditProfileScreen} />
         <Stack.Screen name="PostDetails" component={PostDetailScreen} />
+        <Stack.Screen name="Search" component={SearchScreen} />
+        <Stack.Screen name="MealPlanner" component={MealPlannerScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

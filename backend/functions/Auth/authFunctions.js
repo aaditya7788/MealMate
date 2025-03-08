@@ -1,8 +1,8 @@
-import { Alert } from "react-native";
-import { API_URL } from "../../../Api/config";
+ import { Basic_url } from "../../config/config";
 import { saveAuthData } from "../../LocalStorage/auth_store";
 import Toast from "react-native-toast-message";
 
+const API_URL = Basic_url + '/api/users';
 // Email Validation
 export const validateEmail = (text, setEmail, setEmailError) => {
   setEmail(text);

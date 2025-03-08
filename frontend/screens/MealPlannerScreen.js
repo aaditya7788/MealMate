@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   StyleSheet,
   Text,
@@ -10,7 +10,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { fetchMeals } from '../../backend/components/request';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { Basic_url } from '../../backend/config/config';
 
 const MealPlannerScreen = () => {
   const [selectedDay, setSelectedDay] = useState('Mon');
@@ -20,30 +21,48 @@ const MealPlannerScreen = () => {
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   const Navigation = useNavigation();
 
-  useEffect(() => {
-    const loadMeals = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const data = await fetchMeals(selectedDay);
-        // console.log('Data:', data);
-        setMeals((prevMeals) => ({ ...prevMeals, [selectedDay]: data }));
-      } catch (err) {
-        setError('Failed to load meals');
-        console.error('Error fetching meals:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const loadMeals = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await fetchMeals(selectedDay);
+      // console.log('Data:', data);
+      setMeals((prevMeals) => ({ ...prevMeals, [selectedDay]: data }));
+    } catch (err) {
+      setError('Failed to load meals');
+      console.error('Error fetching meals:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     loadMeals();
   }, [selectedDay]);
 
+  useFocusEffect(
+    useCallback(() => {
+      loadMeals();
+    }, [selectedDay])
+  );
+
   const renderMealCard = (meal, mealType) => (
     <View style={styles.mealCard}>
-      <Image source={{ uri: meal.image }} style={styles.mealImage} />
+      {
+        meal.type === 'recipe' ? (
+          <Image
+            source={{ uri: meal.image }}
+            style={styles.mealImage}
+          />
+        ) : (
+          <Image
+            source={{ uri: Basic_url + meal.image }}
+            style={styles.mealImage}
+          />
+        )
+      }
       <View style={styles.mealInfo}>
-        <Text style={styles.mealType}>{mealType}</Text>
+        <Text style={styles.mealType}>{meal.mealType}</Text>
         <Text style={styles.mealTitle}>{meal.title}</Text>
         <Text style={styles.mealTime}>{meal.time}</Text>
       </View>
@@ -90,8 +109,8 @@ const MealPlannerScreen = () => {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Meal Planner</Text>
-        <TouchableOpacity style={styles.addButton}>
-          <Ionicons name="add-circle" size={24} color="#F59E0B" onPress={()=>Navigation.navigate('Home')}/>
+        <TouchableOpacity style={styles.addButton} onPress={() => Navigation.navigate('Feed')}>
+          <Ionicons name="add-circle" size={24} color="#F59E0B" onPress={() => Navigation.navigate('Home')} />
         </TouchableOpacity>
       </View>
 
@@ -107,7 +126,7 @@ const MealPlannerScreen = () => {
       </View>
 
       {/* Nutrition Summary */}
-      <View style={styles.nutritionSummary}>
+      {/* <View style={styles.nutritionSummary}>
         <View style={styles.nutritionItem}>
           <Text style={styles.nutritionValue}>1,500</Text>
           <Text style={styles.nutritionLabel}>Calories</Text>
@@ -124,7 +143,7 @@ const MealPlannerScreen = () => {
           <Text style={styles.nutritionValue}>180g</Text>
           <Text style={styles.nutritionLabel}>Carbs</Text>
         </View>
-      </View>
+      </View> */}
 
       {/* Meal List */}
       {renderMealList()}
@@ -253,4 +272,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default MealPlannerScreen;``
+export default MealPlannerScreen;

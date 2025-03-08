@@ -94,7 +94,7 @@ function HomeScreen({ backgroundColor = '#fff', homeTextColor = '#fbbf24' }) {
 
   return (
     <View style={[styles.container, { backgroundColor }]}>
-      <StatusBar style="dark" />
+      <StatusBar style="dark" backgroundColor="white"/>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollViewContent}

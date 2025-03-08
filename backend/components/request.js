@@ -21,7 +21,36 @@ export const fetch_UserData = async () => {
 
     return response.data;
   } catch (error) {
-    console.error('Error fetching user data:', error);
+    //console.error('Error fetching user data:', error);
+    throw error;
+  }
+};
+
+export const fetch_name_Userdata = async (name) => {
+ 
+
+    const response = await axios.get(`${Basic_url}/api/users/user/search/${name}`, {
+    
+    });
+
+    if (response.status !== 200) {
+      throw new Error('Failed to fetch user data');
+    }
+
+    return response.data;
+  }; 
+
+
+
+export const fetch_UserData_id = async (uid) => {
+  try {
+    const response = await axios.get(`${Basic_url}/api/users/user/${uid }`,);
+    if (response.status !== 200) {
+      throw new Error('Failed to fetch user data');
+    }
+    return response.data;
+  } catch (error) {
+    //console.error('Error fetching user data:', error);
     throw error;
   }
 };
