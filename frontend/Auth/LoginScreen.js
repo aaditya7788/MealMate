@@ -49,7 +49,8 @@ const LoginScreen = () => {
 
       <Text style={styles.title}>Login to MealMate</Text>
 
-      <TouchableOpacity style={styles.googleButton}>
+      <TouchableOpacity style={styles.googleButton} onPress={() => Alert.alert('Soon enabled...stay tuned!')}>
+        {/* Replace with your Google login function */}
         <GoogleIcon />
         <Text style={styles.googleButtonText}>Continue with Google</Text>
       </TouchableOpacity>

@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { ScrollView, StyleSheet, View, Text, Image, TouchableOpacity, StatusBar, ActivityIndicator, Dimensions } from 'react-native';
+import {
+  ScrollView,
+  StyleSheet,
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  ActivityIndicator,
+  Dimensions,
+} from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { ChevronLeftIcon, PlusIcon } from 'react-native-heroicons/outline';
 import { hp } from '../../helpers/common';
@@ -10,13 +19,12 @@ import { addMeal } from '../../backend/components/request';
 import { getAuthData } from '../../backend/LocalStorage/auth_store';
 import { Basic_url } from '../../backend/config/config';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
 const PostDetailScreen = ({ backgroundColor = '#fff', homeTextColor = '#fbbf24' }) => {
-  const Navigation = useNavigation();
+  const navigation = useNavigation();
   const route = useRoute();
   const { postId } = route.params;
-  console.log('Recipe ID:', postId);
 
   const [recipe, setRecipe] = useState(null);
   const [image, setImage] = useState(null);
@@ -42,22 +50,39 @@ const PostDetailScreen = ({ backgroundColor = '#fff', homeTextColor = '#fbbf24' 
   }, [postId]);
 
   const handleAddMeal = async () => {
-    const authdata = await getAuthData();
+    const authData = await getAuthData();
+
     try {
+      const dayMap = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+      const now = new Date();
+      const todayIndex = now.getDay();
+      const mealDayIndex = dayMap[day];
+
+      let mealDate = new Date(now);
+      if (mealDayIndex !== todayIndex) {
+        const dayDifference = (mealDayIndex - todayIndex + 7) % 7;
+        mealDate.setDate(mealDate.getDate() + dayDifference);
+      }
+
+      const formattedDate = mealDate.toISOString().split('T')[0].replace(/-/g, '/');
+
       const mealData = {
-        userId: authdata._id, // Replace with actual userId
+        userId: authData._id,
         day,
+        date: formattedDate,
         time,
-        mealType, // Use mealType instead of meal_type
+        mealType,
         title: recipe.name,
         image: recipe.image,
+        recipeid: postId,
         type: 'post',
+        status: 'upcoming',
       };
-      // console.log('Adding meal:', mealData);
+
+      console.log('Adding meal:', mealData);
       await addMeal(mealData);
-      Navigation.navigate('MealPlanner');
+      navigation.navigate('MealPlanner');
       setModalVisible(false);
-      // Optionally, you can show a success message or refresh the meal list
     } catch (error) {
       console.error('Error adding meal:', error);
     }
@@ -81,39 +106,44 @@ const PostDetailScreen = ({ backgroundColor = '#fff', homeTextColor = '#fbbf24' 
 
   return (
     <View style={[styles.container, { backgroundColor }]}>
-      
       <ScrollView contentContainerStyle={styles.mainScrollContainer}>
         {/* Recipe Image */}
         <Image source={{ uri: image }} style={styles.image} />
 
-        {/* Back and Favorite Buttons */}
-        <View style={styles.Buttons}>
-          <TouchableOpacity style={styles.BackButton} onPressOut={() => Navigation.goBack()}>
+        {/* Back and Add Buttons */}
+        <View style={styles.buttons}>
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
             <ChevronLeftIcon color={homeTextColor} size={hp(3.5)} strokeWidth={4.5} />
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.FavButton}>
-            <PlusIcon color={'gray'} size={hp(3.5)} strokeWidth={4.5} />
+          <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.addButton}>
+            <PlusIcon color="gray" size={hp(3.5)} strokeWidth={4.5} />
           </TouchableOpacity>
         </View>
 
         {/* Recipe Name and Type */}
-        <View style={styles.RecipeName}>
-          <Text style={styles.Name}>{recipe.name}</Text>
-          <Text style={styles.RecipeType}>{recipe.dietType}</Text>
+        <View style={styles.recipeName}>
+          <Text style={styles.name}>{recipe.name}</Text>
+          <Text style={styles.recipeType}>{recipe.dietType}</Text>
         </View>
 
-        {/* Ingredients Horizontal ScrollView */}
-        <ScrollView 
-          horizontal 
+        {/* Ingredients */}
+        <ScrollView
+          horizontal
           style={styles.ingredientsContainer}
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ flexGrow: 0 }}
         >
           {recipe.ingredients.map((ingredient, index) => (
-            <Animated.View key={index} style={styles.ingredientItem} entering={FadeInRight.springify().delay(100*index)}>
+            <Animated.View
+              key={index}
+              style={styles.ingredientItem}
+              entering={FadeInRight.springify().delay(100 * index)}
+            >
               <Image
                 style={styles.ingredientImage}
-                source={{ uri: `https://www.themealdb.com/images/ingredients/${ingredient.name.toLowerCase()}.png` }}
+                source={{
+                  uri: `https://www.themealdb.com/images/ingredients/${ingredient.name.toLowerCase()}.png`,
+                }}
               />
               <View style={styles.ingredientDetails}>
                 <Text style={styles.ingredientName}>{ingredient.name}</Text>
@@ -123,7 +153,7 @@ const PostDetailScreen = ({ backgroundColor = '#fff', homeTextColor = '#fbbf24' 
           ))}
         </ScrollView>
 
-        {/* Instructions Section */}
+        {/* Instructions */}
         <View style={styles.instructionsContainer}>
           <Text style={styles.sectionTitle}>Instructions</Text>
           {recipe.instructions.split('\n').map((line, index) => (
@@ -133,6 +163,7 @@ const PostDetailScreen = ({ backgroundColor = '#fff', homeTextColor = '#fbbf24' 
           ))}
         </View>
 
+        {/* Add Meal Modal */}
         <AddMealModal
           modalVisible={modalVisible}
           setModalVisible={setModalVisible}
@@ -166,7 +197,7 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     alignSelf: 'center',
   },
-  Buttons: {
+  buttons: {
     position: 'absolute',
     marginTop: 20,
     alignSelf: 'center',
@@ -174,27 +205,27 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
-  BackButton: {
+  backButton: {
     padding: hp(1),
     backgroundColor: 'white',
     borderRadius: 999,
   },
-  FavButton: {
+  addButton: {
     padding: hp(1),
     backgroundColor: 'white',
     borderRadius: 999,
   },
-  RecipeName: {
+  recipeName: {
     justifyContent: 'flex-start',
     marginLeft: 30,
   },
-  Name: {
+  name: {
     marginTop: 30,
     fontSize: 32,
     fontWeight: 'bold',
     color: 'rgba(0,0,0,0.8)',
   },
-  RecipeType: {
+  recipeType: {
     fontSize: 20,
     color: 'rgba(0,0,0,0.5)',
   },

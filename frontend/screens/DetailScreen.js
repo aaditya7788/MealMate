@@ -43,21 +43,41 @@ const DetailScreen = ({ backgroundColor = '#fff', homeTextColor = '#fbbf24' }) =
 
   const handleAddMeal = async () => {
     const authdata = await getAuthData();
+  
     try {
+      // Map days to their respective indices
+      const dayMap = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+      const now = new Date();
+      const todayIndex = now.getDay(); // Current day index (0 = Sunday, 1 = Monday, etc.)
+      const mealDayIndex = dayMap[day]; // Meal's day index
+  
+      // Calculate the date for the meal
+      let mealDate = new Date(now); // Start with today's date
+      if (mealDayIndex !== todayIndex) {
+        const dayDifference = (mealDayIndex - todayIndex + 7) % 7; // Calculate days until the meal day
+        mealDate.setDate(mealDate.getDate() + dayDifference); // Add the difference to today's date
+      }
+  
+      // Format the date as YYYY/MM/DD
+      const formattedDate = mealDate.toISOString().split('T')[0].replace(/-/g, '/');
+  
       const mealData = {
         userId: authdata._id, // Replace with actual userId
         day,
+        date: formattedDate, // Use the calculated date
         time,
         mealType,
         title: recipe.strMeal,
         image: recipe.strMealThumb,
+        recipeid: recipeId,
         type: 'recipe',
+        status: 'upcoming',
       };
+  
       console.log('Adding meal:', mealData);
       await addMeal(mealData);
       Navigation.navigate('MealPlanner');
       setModalVisible(false);
-      // Optionally, you can show a success message or refresh the meal list
     } catch (error) {
       console.error('Error adding meal:', error);
     }

@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { getAuthData } from '../LocalStorage/auth_store';
 import { Basic_url } from '../config/config';
-
+import { scheduleNotification } from '../../helpers/notifications';
 export const fetch_UserData = async () => {
   try {
     const authData = await getAuthData();
@@ -122,8 +122,7 @@ export const fetchMeals = async (selectedDay) => {
 };
 
 
-// Add a new meal
-export const addMeal = async (mealData) => {
+export const addMeal = async (mealData) => { 
   try {
     const authData = await getAuthData();
     if (!authData || !authData.authToken) {
@@ -142,13 +141,81 @@ export const addMeal = async (mealData) => {
       throw new Error('Failed to add meal');
     }
 
-    const data = await response.json();
-    return data;
+    const responseData = await response.json();
+    console.log('Meal added successfully:', responseData);
+
+    // Extract day and time from mealData
+    const { day, time, mealType } = mealData;
+
+    // Parse time to extract hours and minutes
+    const [hours, minutes] = time.split(':').map(Number);
+
+    // Map selected day (Mon, Tue, ...) to actual date (next occurrence)
+    const dayMap = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+    const now = new Date();
+    const today = now.getDay(); // Get the current day of the week (0 = Sunday, 1 = Monday, etc.)
+    const targetDay = dayMap[day]; // Get the target day as per the user input
+    const type = mealData.type; // Get the meal type from the meal data
+    const title = mealData.title; // Get the meal title from the meal data
+    let mealDate = new Date(now); // Clone the current date object
+
+    if (targetDay === today) {
+      // If the selected day is today, use today's date
+      mealDate.setHours(hours); // Set the hour from the meal data
+      mealDate.setMinutes(minutes); // Set the minutes from the meal data
+      mealDate.setSeconds(0); // Reset seconds
+    } else {
+      // Calculate how many days to add to reach the target day
+      const daysToAdd = (targetDay - today + 7) % 7 || 7;
+      mealDate.setDate(now.getDate() + daysToAdd); // Set the day to the next occurrence of the target day
+      mealDate.setHours(hours); // Set the hour from the meal data
+      mealDate.setMinutes(minutes); // Set the minutes from the meal data
+      mealDate.setSeconds(0); // Reset seconds
+    }
+
+    // Call the scheduleNotification function to schedule the notification
+    scheduleNotification({
+      year: mealDate.getFullYear(),
+      month: mealDate.getMonth() + 1, // JavaScript months are 0-based
+      day: mealDate.getDate(),
+      hour: mealDate.getHours(),
+      minute: mealDate.getMinutes(),
+      type, // Include meal type in notification
+      title, // Include meal title in notification
+    });
+
+    console.log(`🔔 Notification scheduled for: ${mealDate}`);
+
   } catch (error) {
     console.error('Error adding meal:', error);
+  }
+};
+
+// Update meal status by ID
+export const updateMealStatus = async (id) => {
+  try {
+    const authData = await getAuthData();
+    if (!authData || !authData.authToken) {
+      throw new Error('No auth token found');
+    }
+
+    const response = await axios.get(
+      `${Basic_url}/api/meals/meals/${id}/completed`, // Pass the status in the request body
+    );
+
+    if (response.status !== 200) {
+      throw new Error('Failed to update meal status');
+    }
+
+    console.log('Meal status updated successfully:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating meal status:', error);
     throw error;
   }
 };
+
+
 // Update a meal
 export const updateMeal = async (id, mealData) => {
   try {
@@ -178,7 +245,7 @@ export const deleteMeal = async (id) => {
       throw new Error('No auth token found');
     }
 
-    await axios.delete(`${Basic_url}/meals/${id}`, {
+    await axios.get(`${Basic_url}/api/meals/meals/${id}/delete`, {
       headers: {
         Authorization: `Bearer ${authData.authToken}`,
       }

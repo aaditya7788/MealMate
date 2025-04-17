@@ -7,27 +7,44 @@ import {
   TouchableOpacity,
   Image,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { fetchMeals } from '../../backend/components/request';
+import { fetchMeals, updateMealStatus, deleteMeal } from '../../backend/components/request';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { Basic_url } from '../../backend/config/config';
 
 const MealPlannerScreen = () => {
   const [selectedDay, setSelectedDay] = useState('Mon');
+  const [selectedTab, setSelectedTab] = useState('Upcoming'); // Default tab set to "Upcoming"
   const [meals, setMeals] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-  const Navigation = useNavigation();
+  const tabs = ['Upcoming', 'Completed']; // Tabs for meal status
+  const navigation = useNavigation();
 
   const loadMeals = async () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchMeals(selectedDay);
-      // console.log('Data:', data);
-      setMeals((prevMeals) => ({ ...prevMeals, [selectedDay]: data }));
+      const data = await fetchMeals(selectedDay); // Fetch meals for the selected day
+
+      // Check and update the status of each meal
+      for (const meal of data) {
+        const formattedDate = meal.date.replace(/\//g, '-'); // Format date to ISO 8601
+        const mealDateTime = new Date(`${formattedDate}T${meal.time}:00`);
+        const now = new Date();
+
+        if (mealDateTime < now) {
+          await updateMealStatus(meal._id); // Update the meal's status
+        }
+      }
+
+      const filteredMeals = data.filter((meal) =>
+        selectedTab === 'Upcoming' ? meal.status === 'upcoming' : meal.status === 'completed'
+      );
+      setMeals((prevMeals) => ({ ...prevMeals, [selectedDay]: filteredMeals }));
     } catch (err) {
       setError('Failed to load meals');
       console.error('Error fetching meals:', err);
@@ -36,40 +53,71 @@ const MealPlannerScreen = () => {
     }
   };
 
+  const handleMealPress = (meal) => {
+    // console.log('Mealxyz:', meal.recipeid);
+    if (meal.type === 'recipe') {
+      navigation.navigate('Details', { recipeId: meal.recipeid });
+    } else if (meal.type === 'post') {
+      navigation.navigate('PostDetails', { postId: meal.recipeid });
+    }
+  };
+
+  const handleDeleteMeal = (id) => {
+    Alert.alert(
+      'Confirm Delete',
+      'Are you sure you want to delete this meal?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteMeal(id); // Call the deleteMeal function
+              loadMeals(); // Reload meals after deletion
+            } catch (error) {
+              console.error('Error deleting meal:', error);
+            }
+          },
+        },
+      ],
+      { cancelable: true }
+    );
+  };
+
   useEffect(() => {
     loadMeals();
-  }, [selectedDay]);
+  }, [selectedDay, selectedTab]);
 
   useFocusEffect(
     useCallback(() => {
       loadMeals();
-    }, [selectedDay])
+    }, [selectedDay, selectedTab])
   );
 
-  const renderMealCard = (meal, mealType) => (
-    <View style={styles.mealCard}>
-      {
-        meal.type === 'recipe' ? (
-          <Image
-            source={{ uri: meal.image }}
-            style={styles.mealImage}
-          />
-        ) : (
-          <Image
-            source={{ uri: Basic_url + meal.image }}
-            style={styles.mealImage}
-          />
-        )
-      }
+  const renderMealCard = (meal) => (
+    <TouchableOpacity onPress={() => handleMealPress(meal)} style={styles.mealCard}>
+      <Image
+        source={{ uri: meal.type === 'recipe' ? meal.image : Basic_url + meal.image }}
+        style={styles.mealImage}
+      />
       <View style={styles.mealInfo}>
         <Text style={styles.mealType}>{meal.mealType}</Text>
         <Text style={styles.mealTitle}>{meal.title}</Text>
         <Text style={styles.mealTime}>{meal.time}</Text>
       </View>
-      <TouchableOpacity style={styles.editButton}>
-        <Ionicons name="pencil" size={20} color="#F59E0B" />
-      </TouchableOpacity>
-    </View>
+      {selectedTab === 'Upcoming' && (
+        <TouchableOpacity
+          style={styles.editButton}
+          onPress={() => handleDeleteMeal(meal._id)} // Trigger delete confirmation
+        >
+          <Ionicons name="trash" size={20} color="#F59E0B" />
+        </TouchableOpacity>
+      )}
+    </TouchableOpacity>
   );
 
   const renderDayButton = ({ item: day }) => (
@@ -78,6 +126,16 @@ const MealPlannerScreen = () => {
       onPress={() => setSelectedDay(day)}
     >
       <Text style={[styles.dayText, selectedDay === day && styles.selectedDayText]}>{day}</Text>
+    </TouchableOpacity>
+  );
+
+  const renderTabButton = (tab) => (
+    <TouchableOpacity
+      key={tab}
+      style={[styles.tabButton, selectedTab === tab && styles.selectedTab]}
+      onPress={() => setSelectedTab(tab)}
+    >
+      <Text style={[styles.tabText, selectedTab === tab && styles.selectedTabText]}>{tab}</Text>
     </TouchableOpacity>
   );
 
@@ -91,14 +149,14 @@ const MealPlannerScreen = () => {
     }
 
     if (!meals[selectedDay] || meals[selectedDay].length === 0) {
-      return <Text style={styles.noMealsText}>No meals planned for today.</Text>;
+      return <Text style={styles.noMealsText}>No meals found for this day.</Text>;
     }
 
     return (
       <FlatList
         data={meals[selectedDay]}
         keyExtractor={(item) => item._id}
-        renderItem={({ item }) => renderMealCard(item, item.type)}
+        renderItem={({ item }) => renderMealCard(item)}
         contentContainerStyle={styles.mealList}
       />
     );
@@ -109,8 +167,8 @@ const MealPlannerScreen = () => {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Meal Planner</Text>
-        <TouchableOpacity style={styles.addButton} onPress={() => Navigation.navigate('Feed')}>
-          <Ionicons name="add-circle" size={24} color="#F59E0B" onPress={() => Navigation.navigate('Home')} />
+        <TouchableOpacity style={styles.addButton} onPress={() => navigation.navigate('Feed')}>
+          <Ionicons name="add-circle" size={24} color="#F59E0B" />
         </TouchableOpacity>
       </View>
 
@@ -125,25 +183,8 @@ const MealPlannerScreen = () => {
         />
       </View>
 
-      {/* Nutrition Summary */}
-      {/* <View style={styles.nutritionSummary}>
-        <View style={styles.nutritionItem}>
-          <Text style={styles.nutritionValue}>1,500</Text>
-          <Text style={styles.nutritionLabel}>Calories</Text>
-        </View>
-        <View style={styles.nutritionItem}>
-          <Text style={styles.nutritionValue}>120g</Text>
-          <Text style={styles.nutritionLabel}>Protein</Text>
-        </View>
-        <View style={styles.nutritionItem}>
-          <Text style={styles.nutritionValue}>45g</Text>
-          <Text style={styles.nutritionLabel}>Fat</Text>
-        </View>
-        <View style={styles.nutritionItem}>
-          <Text style={styles.nutritionValue}>180g</Text>
-          <Text style={styles.nutritionLabel}>Carbs</Text>
-        </View>
-      </View> */}
+      {/* Tabs */}
+      <View style={styles.tabsContainer}>{tabs.map((tab) => renderTabButton(tab))}</View>
 
       {/* Meal List */}
       {renderMealList()}
@@ -170,6 +211,28 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#F59E0B',
   },
+  tabsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  tabButton: {
+    padding: 10,
+    borderRadius: 20,
+    backgroundColor: '#f5f5f5',
+  },
+  selectedTab: {
+    backgroundColor: '#F59E0B',
+  },
+  tabText: {
+    fontWeight: '600',
+    color: '#666',
+  },
+  selectedTabText: {
+    color: '#fff',
+  },
   calendarStrip: {
     paddingVertical: 15,
     borderBottomWidth: 1,
@@ -192,26 +255,6 @@ const styles = StyleSheet.create({
   },
   selectedDayText: {
     color: '#fff',
-  },
-  nutritionSummary: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    padding: 15,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  nutritionItem: {
-    alignItems: 'center',
-  },
-  nutritionValue: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#F59E0B',
-  },
-  nutritionLabel: {
-    fontSize: 12,
-    color: '#666',
   },
   mealList: {
     padding: 15,
@@ -251,11 +294,6 @@ const styles = StyleSheet.create({
   mealTime: {
     color: '#666',
     fontSize: 12,
-  },
-  mealCalories: {
-    color: '#666',
-    fontSize: 12,
-    marginTop: 4,
   },
   editButton: {
     padding: 5,

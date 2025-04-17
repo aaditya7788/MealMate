@@ -1,5 +1,18 @@
 import { Dimensions } from "react-native"
-
+const scheduleNotification = async (year, month, day, hour, minute) => {
+    const triggerTime = new Date(year, month - 1, day, hour, minute); // month is 0-indexed
+    console.log('Scheduling for:', triggerTime);
+  
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: '👨‍🍳 Recipe Reminder!',
+        body: 'Don’t forget to check your meal plan!',
+        sound: true,
+      },
+      trigger: triggerTime,
+    });
+  };
+  
 const {width:deviceWidth,height:deviceHeight} = Dimensions.get('window');
 export const wp = percentage=>{
     const width = deviceWidth;

@@ -42,7 +42,7 @@ const SignUpScreen = () => {
       
       <Text style={styles.title}>Sign Up for MealMate</Text>
       
-      <TouchableOpacity style={styles.googleButton}>
+      <TouchableOpacity style={styles.googleButton} onPress={() => Alert.alert('Soon enabled...stay tuned!')}>
         <GoogleIcon />
         <Text style={styles.googleButtonText}>Continue with Google</Text>
       </TouchableOpacity>

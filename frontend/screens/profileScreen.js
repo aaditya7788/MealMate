@@ -14,8 +14,9 @@ import { useNavigation, useFocusEffect, useRoute } from '@react-navigation/nativ
 import { Ionicons } from '@expo/vector-icons';
 import { fetch_UserData } from '../../backend/components/request';
 import { Basic_url } from '../../backend/config/config';
+import { Platform } from 'react-native';
 import { getRecipePosts, getLikedPosts, getSpecificPost, getFeedPosts, getNumberOfReviewedPosts } from '../../backend/components/postRequest';
-
+import * as Notifications from 'expo-notifications';
 const ProfileScreen = () => {
   const [userData, setUserData] = useState({
     username: '',
@@ -33,6 +34,10 @@ const ProfileScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const { type } = route.params || {};
+
+
+
+
 
   const handleFetchUserData = async () => {
     try {
@@ -81,9 +86,9 @@ const ProfileScreen = () => {
     }, [])
   );
 
-  useEffect(() => {
-    handleFetchUserData();
-  }, []);
+
+
+  
 
   const getTotalPosts = () => {
     return posts.length;

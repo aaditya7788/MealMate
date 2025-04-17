@@ -1,18 +1,22 @@
 {
   "expo": {
     "name": "MealMate",
-    "slug": "tyit-mealmate",
+    "slug": "MealMate",
     "version": "1.0.0",
-    "jsEngine": "hermes",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true
     },
@@ -21,16 +25,16 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.aaditya78.tyitmealmate"
+      "package": "com.mealmate.app",
+      "permissions": []
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "extra": {
       "eas": {
-        "projectId": "058259b0-1db2-4a5e-8fe1-0f0ced7306a6"
+        "projectId": "f9163e3c-ca2d-490b-ad1f-2487b0c23471"
       }
-    },
-    "owner": "aaditya78"
+    }
   }
 }

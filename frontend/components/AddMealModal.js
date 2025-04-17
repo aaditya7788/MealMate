@@ -1,17 +1,57 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, TextInput, Button, StyleSheet, Modal } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, TextInput, StyleSheet, Modal } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
 const AddMealModal = ({ modalVisible, setModalVisible, day, setDay, time, setTime, mealType, setMealType, handleAddMeal }) => {
   const [showTimePicker, setShowTimePicker] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+
+  // Set default day and time to the current day and time
+  useEffect(() => {
+    if (modalVisible) {
+      const now = new Date();
+      const currentDay = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][now.getDay()];
+      const currentTime = now.toTimeString().slice(0, 5); // Format as HH:MM
+      setDay(currentDay);
+      setTime(currentTime);
+      setSelectedDate(now);
+    }
+  }, [modalVisible]);
 
   const onTimeChange = (event, selectedTime) => {
     setShowTimePicker(false);
     if (selectedTime) {
+      const updatedDate = new Date(selectedDate);
+      updatedDate.setHours(selectedTime.getHours());
+      updatedDate.setMinutes(selectedTime.getMinutes());
+      setSelectedDate(updatedDate);
+
       const hours = selectedTime.getHours().toString().padStart(2, '0');
       const minutes = selectedTime.getMinutes().toString().padStart(2, '0');
       setTime(`${hours}:${minutes}`);
+
+      console.log('Updated Time:', updatedDate);
     }
+  };
+
+  const onDayChange = (selectedDay) => {
+    const dayIndex = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].indexOf(selectedDay);
+    const updatedDate = new Date(selectedDate);
+    const currentDayIndex = updatedDate.getDay();
+    const dayDifference = dayIndex - currentDayIndex;
+
+    updatedDate.setDate(updatedDate.getDate() + dayDifference);
+    setSelectedDate(updatedDate);
+    setDay(selectedDay);
+
+    console.log('Updated Day:', updatedDate);
+  };
+
+  const handleAddMealWithDebug = () => {
+    console.log('Final Selected Date:', selectedDate);
+    console.log('Day:', day);
+    console.log('Time:', time);
+    handleAddMeal();
   };
 
   return (
@@ -34,7 +74,7 @@ const AddMealModal = ({ modalVisible, setModalVisible, day, setDay, time, setTim
           </TouchableOpacity>
           {showTimePicker && (
             <DateTimePicker
-              value={new Date()}
+              value={selectedDate}
               mode="time"
               display="default"
               onChange={onTimeChange}
@@ -46,7 +86,7 @@ const AddMealModal = ({ modalVisible, setModalVisible, day, setDay, time, setTim
               <TouchableOpacity
                 key={d}
                 style={[styles.dayButton, day === d && styles.selectedDay]}
-                onPress={() => setDay(d)}
+                onPress={() => onDayChange(d)}
               >
                 <Text style={[styles.dayText, day === d && styles.selectedDayText]}>{d}</Text>
               </TouchableOpacity>
@@ -64,7 +104,7 @@ const AddMealModal = ({ modalVisible, setModalVisible, day, setDay, time, setTim
               </TouchableOpacity>
             ))}
           </View>
-          <TouchableOpacity style={styles.addButton} onPress={handleAddMeal}>
+          <TouchableOpacity style={styles.addButton} onPress={handleAddMealWithDebug}>
             <Text style={styles.addButtonText}>Add Meal</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.cancelButton} onPress={() => setModalVisible(false)}>
@@ -109,7 +149,6 @@ const styles = StyleSheet.create({
   },
   daySelector: {
     flexDirection: 'row',
-    //justifyContent: 'space-around',
     flexWrap: 'wrap',
     marginBottom: 10,
   },
@@ -117,6 +156,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 5,
     backgroundColor: '#f5f5f5',
+    margin: 5,
   },
   selectedDay: {
     backgroundColor: '#F59E0B',
@@ -164,7 +204,6 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 5,
     alignItems: 'center',
-    //marginVertical: 5,
   },
   cancelButtonText: {
     color: '#000',
