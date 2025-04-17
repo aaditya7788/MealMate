@@ -49,13 +49,13 @@ const LoginScreen = () => {
 
       <Text style={styles.title}>Login to MealMate</Text>
 
-      <TouchableOpacity style={styles.googleButton} onPress={() => Alert.alert('Soon enabled...stay tuned!')}>
-        {/* Replace with your Google login function */}
+      {/* <TouchableOpacity style={styles.googleButton} onPress={() => Alert.alert('Soon enabled...stay tuned!')}>
+     
         <GoogleIcon />
         <Text style={styles.googleButtonText}>Continue with Google</Text>
       </TouchableOpacity>
 
-      <Text style={styles.orText}>or</Text>
+      <Text style={styles.orText}>or</Text> */}
 
       <TextInput
         style={styles.input}

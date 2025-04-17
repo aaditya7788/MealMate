@@ -1,6 +1,8 @@
 import axios from 'axios';
 import { Basic_url } from '../config/config';
 import { getAuthData } from '../LocalStorage/auth_store';
+import Toast from 'react-native-toast-message';
+
 export const postRecipe = async (recipeData) => {
   try {
     const response = await axios.post(`${Basic_url}/api/post/createPost`, recipeData, {
@@ -10,11 +12,33 @@ export const postRecipe = async (recipeData) => {
     });
 
     if (response.status !== 201) {
+      Toast.show({
+        type: 'error',
+        text1: 'Post Failed',
+        text2: 'Failed to post the recipe. Please try again.',
+        visibilityTime: 3000, // Show toast for 3 seconds
+        position: 'bottom', // Display toast at the bottom
+      });
       throw new Error('Failed to post recipe');
     }
 
+    Toast.show({
+      type: 'success',
+      text1: 'Post Successful',
+      text2: 'Your recipe has been posted successfully!',
+      visibilityTime: 3000, // Show toast for 3 seconds
+      position: 'bottom', // Display toast at the bottom
+    });
+
     return response.data;
   } catch (error) {
+    Toast.show({
+      type: 'error',
+      text1: 'Post Failed',
+      text2: error.response?.data?.message || 'An error occurred while posting the recipe.',
+      visibilityTime: 3000, // Show toast for 3 seconds
+      position: 'bottom', // Display toast at the bottom
+    });
     console.error('Error posting recipe:', error);
     throw error;
   }

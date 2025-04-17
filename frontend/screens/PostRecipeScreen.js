@@ -70,7 +70,7 @@ const PostRecipeScreen = () => {
       return;
     }
     else{
-      Alert.alert('Recipe Posted', 'Your Recipe has been posted successfully');
+      // Alert.alert('Recipe Posted', 'Your Recipe has been posted successfully');
       navigation.navigate('Profile');
     }
 

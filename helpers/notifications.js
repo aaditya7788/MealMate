@@ -14,7 +14,7 @@ export const scheduleNotification = async ({ year, month, day, hour, minute, typ
         title: `🍽️ Meal Reminder`,
         body: `Time to eat or check your meal plan! ${type} - ${title}`,
         data: { type, title },
-        sound: 'custom',
+        sound: 'notification.wav',
         color: '#fbbf24',
         // Icon setup is handled in app.json through the plugin config
       },

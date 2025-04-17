@@ -48,9 +48,25 @@ export const signup = async (name, email, password) => {
     });
 
     const data = await response.json();
+
     if (!response.ok) {
+      Toast.show({
+        type: 'error',
+        text1: 'Signup Failed',
+        text2: data.message || 'Something went wrong',
+        visibilityTime: 3000, // Show toast for 3 seconds
+        position: 'bottom',
+      });
       throw new Error(data.message || 'Something went wrong');
     }
+
+    Toast.show({
+      type: 'success',
+      text1: 'Signup Successful',
+      text2: 'Welcome to MealMate!',
+      visibilityTime: 3000, // Show toast for 3 seconds
+      position: 'bottom',
+    });
 
     // Save authentication data to AsyncStorage after successful signup
     const { authToken, email: userEmail, name: userName, _id, profilepic } = data.user; // Include profilepic
@@ -75,15 +91,25 @@ export const login = async (email, password) => {
 
     const data = await response.json();
     console.log('Login Response:', response);
+
+    if (!response.ok) {
+      Toast.show({
+        type: 'error',
+        text1: 'Login Failed',
+        text2: data.message || 'Something went wrong',
+        visibilityTime: 3000, // Show toast for 3 seconds
+        position: 'bottom',
+      });
+      throw new Error(data.message || 'Something went wrong');
+    }
+
     Toast.show({
       type: 'success',
       text1: 'Login Successful',
       text2: 'Welcome to MealMate!',
+      visibilityTime: 3000, // Show toast for 3 seconds
+      position: 'bottom',
     });
-
-    if (!response.ok) {
-      throw new Error(data.message || 'Something went wrong');
-    }
 
     // Save authentication data to AsyncStorage after successful login
     const { authToken, email: userEmail, name: userName, _id, profilepic } = data.user; // Include profilepic

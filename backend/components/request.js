@@ -2,6 +2,7 @@ import axios from 'axios';
 import { getAuthData } from '../LocalStorage/auth_store';
 import { Basic_url } from '../config/config';
 import { scheduleNotification } from '../../helpers/notifications';
+import Toast from 'react-native-toast-message';
 export const fetch_UserData = async () => {
   try {
     const authData = await getAuthData();
@@ -122,7 +123,9 @@ export const fetchMeals = async (selectedDay) => {
 };
 
 
-export const addMeal = async (mealData) => { 
+
+
+export const addMeal = async (mealData) => {
   try {
     const authData = await getAuthData();
     if (!authData || !authData.authToken) {
@@ -138,6 +141,13 @@ export const addMeal = async (mealData) => {
     });
 
     if (!response.ok) {
+      Toast.show({
+        type: 'error',
+        text1: 'Add Meal Failed',
+        text2: 'Failed to add the meal. Please try again.',
+        visibilityTime: 3000, // Show toast for 3 seconds
+        position: 'bottom', // Display toast at the bottom
+      });
       throw new Error('Failed to add meal');
     }
 
@@ -186,8 +196,26 @@ export const addMeal = async (mealData) => {
 
     console.log(`🔔 Notification scheduled for: ${mealDate}`);
 
+    // Show success toast
+    Toast.show({
+      type: 'success',
+      text1: 'Meal Added',
+      text2: 'Your meal has been added successfully!',
+      visibilityTime: 3000, // Show toast for 3 seconds
+      position: 'bottom', // Display toast at the bottom
+    });
+
   } catch (error) {
     console.error('Error adding meal:', error);
+
+    // Show error toast
+    Toast.show({
+      type: 'error',
+      text1: 'Add Meal Failed',
+      text2: error.message || 'An error occurred while adding the meal.',
+      visibilityTime: 3000, // Show toast for 3 seconds
+      position: 'bottom', // Display toast at the bottom
+    });
   }
 };
 
