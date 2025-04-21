@@ -95,8 +95,8 @@ const searchUserProfile = () => {
 
   const stats = [
     { label: 'Posts', value: getTotalPosts() },
-    { label: 'Likes', value: likedPosts.length },
-    { label: 'Reviews', value: reviewPosts },
+    { label: 'Liked', value: likedPosts.length },
+    { label: 'Reviewed', value: reviewPosts },
   ];
 
   const renderMealPost = ({ item }) => {

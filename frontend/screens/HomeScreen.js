@@ -121,7 +121,7 @@ function HomeScreen({ backgroundColor = '#fff', homeTextColor = '#fbbf24' }) {
         {/* Search Bar */}
         <View style={styles.searchContainer}>
           <TextInput
-            placeholder="Search for recipes"
+            placeholder="Search for Recipes or Profiles"
             placeholderTextColor="gray"
             style={styles.searchInput}
             onFocus={() => navigation.navigate('Search')}

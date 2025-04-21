@@ -64,7 +64,7 @@ export const signup = async (name, email, password) => {
       type: 'success',
       text1: 'Signup Successful',
       text2: 'Welcome to MealMate!',
-      visibilityTime: 3000, // Show toast for 3 seconds
+      visibilityTime: 7000, // Show toast for 3 seconds
       position: 'bottom',
     });
 

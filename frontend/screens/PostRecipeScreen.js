@@ -25,6 +25,7 @@ const PostRecipeScreen = () => {
   const [instructions, setInstructions] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
+  const [errors, setErrors] = useState({});
 
   const navigation = useNavigation();
 
@@ -64,19 +65,48 @@ const PostRecipeScreen = () => {
     }
   };
 
-  const handleSubmit = async () => {
+  const handleRemoveIngredient = (index) => {
+    if (ingredients.length > 1) {
+      const updated = ingredients.filter((_, i) => i !== index);
+      setIngredients(updated);
+    }
+  };
+
+
+  const validateFields = () => {
+    const newErrors = {};
+
     if (!image) {
-      Alert.alert('Error', 'Please select an image');
-      return;
+      Alert.alert('Validation Error', 'Please select an image.');
+      newErrors.image = true;
     }
-    else{
-      // Alert.alert('Recipe Posted', 'Your Recipe has been posted successfully');
-      navigation.navigate('Profile');
-    }
+
+    if (!recipeName.trim()) newErrors.recipeName = '! Recipe name is required';
+    if (!instructions.trim()) newErrors.instructions = '! Instructions are required';
+
+    const ingredientErrors = ingredients.map((ingredient) => {
+      const errors = {};
+      if (!ingredient.name.trim()) errors.name = '! Name is required';
+      if (!ingredient.quantity.trim()) errors.quantity = '! Quantity is required';
+      return errors;
+    });
+
+    newErrors.ingredients = ingredientErrors;
+
+    const hasErrors =
+      Object.keys(newErrors).length > 1 || // image/instructions/recipeName
+      ingredientErrors.some((err) => Object.keys(err).length > 0);
+
+    setErrors(newErrors);
+    return !hasErrors;
+  };
+
+  const handleSubmit = async () => {
+    if (!validateFields()) return;
 
     const authdata = await getAuthData();
     const recipeData = {
-      uid: authdata._id, // Replace with actual UID
+      uid: authdata._id,
       name: recipeName,
       dietType,
       mealType,
@@ -85,31 +115,29 @@ const PostRecipeScreen = () => {
     };
 
     try {
-      // Step 1: Create the post without the image to get the post_id
       const response = await postRecipe(recipeData);
       const postId = response.post._id;
-      console.log('Recipe posted successfully:', postId);
 
-      // Step 2: Rename the image file to post_id.format
       if (image) {
-        const filename = `${postId}.jpg`; // Assuming the image is in jpg format
+        const filename = `${postId}.jpg`;
         const formData = new FormData();
         const match = /\.(\w+)$/.exec(image.split('/').pop());
         const type = match ? `image/${match[1]}` : `image`;
-        formData.append('image', { uri: image, name: filename, type });
 
-        // Step 3: Upload the image with the new name
-        const imageResponse = await uploadRecipeImage(postId, formData);
-        console.log('Image uploaded successfully:', imageResponse);
+        formData.append('image', { uri: image, name: filename, type });
+        await uploadRecipeImage(postId, formData);
       }
+
+      Alert.alert('Success', 'Recipe posted successfully!');
+      navigation.navigate('Profile');
     } catch (error) {
       console.error('Error posting recipe:', error);
+      Alert.alert('Error', 'Failed to post the recipe');
     }
   };
 
   const onRefresh = () => {
     setRefreshing(true);
-    // Reset all state variables to their initial values
     setImage(null);
     setRecipeName('');
     setDietType('Veg');
@@ -117,9 +145,8 @@ const PostRecipeScreen = () => {
     setIngredients([{ name: '', quantity: '' }]);
     setInstructions('');
     setSearchResults([]);
-    setTimeout(() => {
-      setRefreshing(false);
-    }, 2000);
+    setErrors({});
+    setTimeout(() => setRefreshing(false), 2000);
   };
 
   return (
@@ -128,9 +155,7 @@ const PostRecipeScreen = () => {
       data={[]}
       ListHeaderComponent={
         <View style={{ flex: 1 }}>
-          <View style={styles.header}>
-            <Text style={styles.headerTitle}>Post Recipe</Text>
-          </View>
+          <Text style={styles.headerTitle}>Post Recipe</Text>
 
           <TouchableOpacity style={styles.imagePicker} onPress={pickImage}>
             {image ? (
@@ -143,6 +168,7 @@ const PostRecipeScreen = () => {
             )}
           </TouchableOpacity>
 
+          {/* Recipe Name */}
           <View style={styles.nameContainer}>
             <Text style={styles.label}>Recipe Name</Text>
             <TextInput
@@ -151,60 +177,48 @@ const PostRecipeScreen = () => {
               value={recipeName}
               onChangeText={setRecipeName}
             />
+            {errors.recipeName && <Text style={styles.errorText}>{errors.recipeName}</Text>}
           </View>
 
-          <View style={styles.dietTypeContainer}>
-            <Text style={styles.label}>Diet Type</Text>
+          {/* Diet Type */}
+          <Text style={styles.label}>Diet Type</Text>
+          <View style={styles.buttonRow}>
             {['Veg', 'Non-Veg', 'Vegan'].map((type) => (
               <TouchableOpacity
                 key={type}
-                style={[
-                  styles.dietTypeButton,
-                  dietType === type && styles.selectedDietType,
-                ]}
+                style={[styles.typeButton, dietType === type && styles.selectedButton]}
                 onPress={() => setDietType(type)}
               >
-                <Text
-                  style={[
-                    styles.dietTypeText,
-                    dietType === type && styles.selectedDietTypeText,
-                  ]}
-                >
+                <Text style={[styles.buttonText, dietType === type && styles.selectedButtonText]}>
                   {type}
                 </Text>
               </TouchableOpacity>
             ))}
           </View>
 
-          <View style={styles.mealTypeContainer}>
-            <Text style={styles.label}>Meal Type</Text>
+          {/* Meal Type */}
+          <Text style={styles.label}>Meal Type</Text>
+          <View style={styles.buttonRow}>
             {['Breakfast', 'Lunch', 'Dinner'].map((type) => (
               <TouchableOpacity
                 key={type}
-                style={[
-                  styles.mealTypeButton,
-                  mealType === type && styles.selectedMealType,
-                ]}
+                style={[styles.typeButton, mealType === type && styles.selectedButton]}
                 onPress={() => setMealType(type)}
               >
-                <Text
-                  style={[
-                    styles.mealTypeText,
-                    mealType === type && styles.selectedMealTypeText,
-                  ]}
-                >
+                <Text style={[styles.buttonText, mealType === type && styles.selectedButtonText]}>
                   {type}
                 </Text>
               </TouchableOpacity>
             ))}
           </View>
 
-          <View style={styles.ingredientsContainer}>
-            <Text style={styles.label}>Ingredients</Text>
-            {ingredients.map((ingredient, index) => (
-              <View key={index} style={styles.ingredientRow}>
+          {/* Ingredients */}
+          <Text style={styles.label}>Ingredients</Text>
+          {ingredients.map((ingredient, index) => (
+            <View key={index} style={styles.ingredientRow}>
+              <View style={styles.ingredientInputs}>
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, styles.ingredientInput]}
                   placeholder="Ingredient"
                   value={ingredient.name}
                   onChangeText={(text) => {
@@ -213,26 +227,44 @@ const PostRecipeScreen = () => {
                   }}
                 />
                 <TextInput
-                  style={styles.input}
-                  placeholder="Quantity"
+                  style={[styles.input, styles.quantityInput]}
+                  placeholder="Qty"
                   value={ingredient.quantity}
-                  onChangeText={(text) =>
-                    handleIngredientChange(index, 'quantity', text)
-                  }
+                  onChangeText={(text) => handleIngredientChange(index, 'quantity', text)}
                 />
+                <TouchableOpacity
+                  onPress={() => handleRemoveIngredient(index)}
+                  disabled={ingredients.length === 1}
+                  style={[
+                    styles.removeButton,
+                    ingredients.length === 1 && styles.removeButtonDisabled,
+                  ]}
+                >
+                  <Text style={styles.removeButtonText}>–</Text>
+                </TouchableOpacity>
               </View>
-            ))}
-            <TouchableOpacity onPress={handleAddIngredient}>
-              <Text style={styles.addIngredientText}>+ Add Ingredient</Text>
-            </TouchableOpacity>
-          </View>
 
+              {/* Error Display */}
+              {errors.ingredients?.[index]?.name && (
+                <Text style={styles.errorText}>{errors.ingredients[index].name}</Text>
+              )}
+              {errors.ingredients?.[index]?.quantity && (
+                <Text style={styles.errorText}>{errors.ingredients[index].quantity}</Text>
+              )}
+            </View>
+          ))}
+
+          {/* Add Ingredient */}
+          <TouchableOpacity onPress={handleAddIngredient}>
+            <Text style={styles.addIngredientText}>+ Add Ingredient</Text>
+          </TouchableOpacity>
+
+          {/* Search Results */}
           {searchResults.length > 0 && (
             <View style={styles.searchResultsContainer}>
               {searchResults.map((result, index) => (
                 <TouchableOpacity
                   key={index}
-                  style={styles.searchResultItem}
                   onPress={() => {
                     const newIngredients = [...ingredients];
                     newIngredients[ingredients.length - 1].name = result.name;
@@ -246,25 +278,24 @@ const PostRecipeScreen = () => {
             </View>
           )}
 
-          <View style={styles.instructionsContainer}>
-            <Text style={styles.label}>Instructions</Text>
-            <TextInput
-              style={[styles.input, styles.instructionsInput]}
-              multiline
-              placeholder="Enter instructions"
-              value={instructions}
-              onChangeText={setInstructions}
-            />
-          </View>
+          {/* Instructions */}
+          <Text style={styles.label}>Instructions</Text>
+          <TextInput
+            style={[styles.input, styles.instructionsInput]}
+            placeholder="Enter instructions"
+            multiline
+            value={instructions}
+            onChangeText={setInstructions}
+          />
+          {errors.instructions && <Text style={styles.errorText}>{errors.instructions}</Text>}
 
+          {/* Submit Button */}
           <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
             <Text style={styles.submitButtonText}>Submit Recipe</Text>
           </TouchableOpacity>
         </View>
       }
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-      }
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     />
   );
 };
@@ -272,15 +303,14 @@ const PostRecipeScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    marginTop: 20,
     backgroundColor: '#fff',
     padding: 15,
-  },
-  header: {
-    marginBottom: 20,
   },
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
+    marginBottom: 20,
     textAlign: 'center',
   },
   imagePicker: {
@@ -296,99 +326,72 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  imagePickerText: {
-    color: '#ccc',
-    fontSize: 18,
-  },
   image: {
     width: 200,
     height: 200,
     borderRadius: 10,
   },
+  imagePickerText: {
+    color: '#ccc',
+    fontSize: 16,
+    marginTop: 10,
+  },
   nameContainer: {
     marginBottom: 20,
   },
-  dietTypeContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: 20,
-  },
-  dietTypeButton: {
-    padding: 10,
-    borderRadius: 5,
-    backgroundColor: '#f5f5f5',
-  },
-  selectedDietType: {
-    backgroundColor: '#F59E0B',
-  },
-  dietTypeText: {
-    fontSize: 16,
+  label: {
     fontWeight: 'bold',
-  },
-  selectedDietTypeText: {
-    color: '#fff',
-  },
-  mealTypeContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: 20,
-  },
-  mealTypeButton: {
-    padding: 10,
-    borderRadius: 5,
-    backgroundColor: '#f5f5f5',
-  },
-  selectedMealType: {
-    backgroundColor: '#F59E0B',
-  },
-  mealTypeText: {
+    marginBottom: 8,
     fontSize: 16,
-    fontWeight: 'bold',
-  },
-  selectedMealTypeText: {
-    color: '#fff',
-  },
-  ingredientsContainer: {
-    marginBottom: 20,
-  },
-  ingredientRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 10,
   },
   input: {
-    flex: 1,
     backgroundColor: '#f9f9f9',
     padding: 10,
     borderRadius: 5,
     borderWidth: 1,
     borderColor: '#ddd',
-    marginRight: 10,
+    marginBottom: 10,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 20,
+  },
+  typeButton: {
+    padding: 10,
+    borderRadius: 5,
+    backgroundColor: '#f5f5f5',
+  },
+  selectedButton: {
+    backgroundColor: '#F59E0B',
+  },
+  buttonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  selectedButtonText: {
+    color: '#fff',
+  },
+  ingredientRow: {
+    marginBottom: 10,
   },
   addIngredientText: {
     color: '#F59E0B',
-    fontSize: 16,
     fontWeight: 'bold',
     textAlign: 'center',
+    marginVertical: 10,
   },
   searchResultsContainer: {
     backgroundColor: '#fff',
     borderColor: '#ddd',
     borderWidth: 1,
     borderRadius: 5,
-    marginTop: 10,
-    padding: 10,
+    marginBottom: 20,
   },
-  searchResultItem: {
+  searchResultText: {
     padding: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#ddd',
-  },
-  searchResultText: {
-    fontSize: 16,
-  },
-  instructionsContainer: {
-    marginBottom: 20,
   },
   instructionsInput: {
     height: 100,
@@ -399,13 +402,46 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 5,
     alignItems: 'center',
-    marginBottom: 80, // Ensure there's space at the bottom
+    marginBottom: 80,
   },
   submitButtonText: {
     color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 18,
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 12,
+    marginBottom: 5,
+  },
+  ingredientRow: {
+    marginBottom: 10,
+  },
+  ingredientInputs: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  ingredientInput: {
+    flex: 2,
+    marginRight: 5,
+  },
+  quantityInput: {
+    flex: 1,
+    marginRight: 5,
+  },
+  removeButton: {
+    backgroundColor: '#F59E0B',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 99,
+  },
+  removeButtonDisabled: {
+    backgroundColor: '#eee',
+  },
+  removeButtonText: {
     fontSize: 18,
     fontWeight: 'bold',
   },
 });
 
-export default PostRecipeScreen; 
+export default PostRecipeScreen;

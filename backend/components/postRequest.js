@@ -391,3 +391,24 @@ export const getLikedPosts = async (userId) => {
     throw error;
   }
 };
+
+
+// Delete a post by ID and UID
+export const deletePostByIdAndUid = async (postId, userId) => {
+  try {
+    const response = await axios.get(`${Basic_url}/api/post/deletePost/${postId}/${userId}`, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (response.status !== 200) {
+      throw new Error('Failed to delete post');
+    }
+
+    return response.data; // Return success message
+  } catch (error) {
+    console.error('Error deleting post:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+};

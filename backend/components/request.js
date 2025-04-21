@@ -3,6 +3,7 @@ import { getAuthData } from '../LocalStorage/auth_store';
 import { Basic_url } from '../config/config';
 import { scheduleNotification } from '../../helpers/notifications';
 import Toast from 'react-native-toast-message';
+
 export const fetch_UserData = async () => {
   try {
     const authData = await getAuthData();

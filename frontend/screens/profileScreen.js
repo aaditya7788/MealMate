@@ -15,7 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { fetch_UserData } from '../../backend/components/request';
 import { Basic_url } from '../../backend/config/config';
 import { Platform } from 'react-native';
-import { getRecipePosts, getLikedPosts, getSpecificPost, getFeedPosts, getNumberOfReviewedPosts } from '../../backend/components/postRequest';
+import { getRecipePosts, getLikedPosts, getSpecificPost, getFeedPosts, getNumberOfReviewedPosts,deletePostByIdAndUid } from '../../backend/components/postRequest';
 import * as Notifications from 'expo-notifications';
 const ProfileScreen = () => {
   const [userData, setUserData] = useState({
@@ -44,6 +44,7 @@ const ProfileScreen = () => {
       const response = await fetch_UserData();
       console.log("Fetched user Data:", response);
       setUserData({
+        id: response._id,
         username: response.name || 'User',
         profilePic: `${Basic_url}${response.profilepic}`,
         bio: response.description || 'Food enthusiast 🍳',
@@ -102,9 +103,39 @@ const ProfileScreen = () => {
 
   const renderMealPost = ({ item }) => {
     const img_url = `${Basic_url}${item.image}`;
-    // console.log("Image URL:", img_url);
+  
+    const handleDeletePost = async (postId) => {
+      console.log("Post ID to delete:", postId);
+      console.log("User ID:", userData.id);
+      Alert.alert(
+        'Delete Post',
+        'Are you sure you want to delete this post?',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Delete',
+            style: 'destructive',
+            onPress: async () => {
+              try {
+                await deletePostByIdAndUid(postId, userData.id); // Call deletePost function
+                setPosts((prevPosts) => prevPosts.filter((post) => post._id !== postId)); // Remove the deleted post from the list
+                Alert.alert('Success', 'Post deleted successfully');
+              } catch (error) {
+                console.error('Error deleting post:', error);
+                Alert.alert('Error', 'Failed to delete the post');
+              }
+            },
+          },
+        ]
+      );
+    };
+  
     return (
-      <TouchableOpacity style={styles.mealPost} onPress={() => navigation.navigate('PostDetails', { postId: item._id })}>
+      <TouchableOpacity
+        style={styles.mealPost}
+        onPress={() => navigation.navigate('PostDetails', { postId: item._id })}
+        onLongPress={activeTab === 'posts' ? () => handleDeletePost(item._id) : null} // Only enable long press in "My Posts" tab
+      >
         <Image source={{ uri: img_url }} style={styles.mealImage} />
       </TouchableOpacity>
     );
