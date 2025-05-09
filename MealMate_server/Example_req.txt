@@ -1,0 +1,134 @@
+//register
+
+curl -X POST http://localhost:5000/api/users/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Kanya Kailah",
+    "email": "kanya.kailah@example.com",
+    "password": "securepassword"
+  }'
+//login
+
+curl -X POST http://localhost:5000/api/users/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "kanya.kailah@example.com",
+    "password": "securepassword"
+  }'
+
+curl -X PUT http://192.168.0.105:5000/api/users/updateProfile/677d2994073bf3ce1fb76647 -H "Content-Type: application/json" -d '{"profilepic": "http://example.com/path/to/profilepic.jpg"}'
+
+
+curl -H "Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NzhiNjI0NGFiYzE0OWYzNTRhNmJiYTMiLCJpYXQiOjE3MzcxODc5MDh9.i86hqZBhpNC7_UMIgXY6Ps5g9uHIYND9_FYmINzMWHk" http://192.168.10.13:5000/api/users/user
+
+
+
+
+curl -X PUT http://192.168.0.105:5000/api/users/updateProfile \
+-H "Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NzhkMzI1NjFiMWM2MWUxODdkY2U3YzUiLCJpYXQiOjE3MzczMDY3MTB9.z797UhQsZEE_APoEf1pBlFNWK0vWc7ZkUcRwzHAP4tY" \
+-H "Content-Type: application/json" \
+-d '{
+  "description": "New description",
+  "stats": {
+    "posts": 10,
+    "likes": 20,
+    "reviews": 5
+  }
+}'
+
+
+curl -X PUT http://192.168.0.105:5000/api/users/updateProfile \
+-H "Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NzhkMzI1NjFiMWM2MWUxODdkY2U3YzUiLCJpYXQiOjE3MzczMDY3MTB9.z797UhQsZEE_APoEf1pBlFNWK0vWc7ZkUcRwzHAP4tY" \
+-H "Content-Type: multipart/form-data" \
+-F "profilepic=@/path/to/new/profilepic.png" \
+-F "description=New description" \
+-F "stats[posts]=10" \
+-F "stats[likes]=20" \
+-F "stats[reviews]=5"
+
+
+#meal
+
+retrive meal: 
+curl -X GET "http://192.168.0.105:5000/api/meals/meals/monday?userId=678e8a98d412ba4ef5087f47"
+
+request meal:  
+curl -X POST http://192.168.0.105:5000/api/meals/meals -H "Content-Type: application/json" -d "{\"userId\":\"678e8a98d412ba4ef5087f47\",\"day\":\"monday\",\"name\":\"Chicken Sandwich\",\"calories\":450,\"protein\":28,\"carbs\":35,\"fat\":22,\"time\":\"12:30\",\"title\":\"Lunch\",\"type\":\"lunch\"}"
+
+
+create post
+
+curl -X POST http://192.168.0.102:5000/api/post/createPost \
+-H "Content-Type: application/json" \
+-d '{
+  "uid": "RANDOM SELECT UID from multiple uid",
+  "name": "ingredient name"
+  "dietType": "Veg",
+  "mealType": "Lunch",
+  "ingredients": [
+    { "name": "Tomato", "quantity": "2" },
+    { "name": "Cucumber", "quantity": "1" },
+    { "name": "Lettuce", "quantity": "1 bunch" }
+  ],
+  "instructions": "1. Wash all vegetables.\n2. Chop tomatoes and cucumber.\n3. Mix all ingredients in a bowl.\n4. Add salt and pepper to taste.\n5. Serve fresh."
+}'
+
+
+curl -X POST http://192.168.0.102:5000/api/post/uploadRecipeImage/<postId> \
+-H "Content-Type: multipart/form-data" \
+-F "image=@/path/to/your/image.jpg"
+
+retrive post 
+
+http://192.168.0.105:5000/api/post/posts/6790c8c0e16c605ad9ef992f
+
+
+//post like
+
+curl -X POST http://localhost:5000/api/likes/likePost/60d21b4667d0d8992e610c85 \
+-H "Content-Type: application/json" \
+-d '{
+  "userId": "60d21b4667d0d8992e610c86"
+}'
+
+//unlike
+
+curl -X POST http://localhost:5000/api/likes/unlikePost/60d21b4667d0d8992e610c85 \
+-H "Content-Type: application/json" \
+-d '{
+  "userId": "60d21b4667d0d8992e610c86"
+}'
+
+//Review 
+curl -X POST http://localhost:5000/api/reviews/reviewPost/60d21b4667d0d8992e610c85 \
+-H "Content-Type: application/json" \
+-d '{
+  "userId": "60d21b4667d0d8992e610c86",
+  "rating": 5,
+  "comment": "Great recipe!"
+}'
+
+
+//Delete-review
+
+curl -X DELETE http://localhost:5000/api/reviews/deleteReview/60d21b4667d0d8992e610c85 \
+-H "Content-Type: application/json" \
+-d '{
+  "userId": "60d21b4667d0d8992e610c86"
+}'
+
+
+//increment like count
+curl -X POST "http://localhost:5000/api/statistics/incrementLike/60d21b4667d0d8992e610c85" \
+-H "Content-Type: application/json"
+//decrement like count
+curl -X POST "http://localhost:5000/api/statistics/decrementLike/60d21b4667d0d8992e610c85" \
+-H "Content-Type: application/json"
+//increment review count
+curl -X POST "http://localhost:5000/api/statistics/incrementReview/60d21b4667d0d8992e610c85" \
+-H "Content-Type: application/json"
+//decrement review count
+curl -X POST "http://localhost:5000/api/statistics/decrementReview/60d21b4667d0d8992e610c85" \
+-H "Content-Type: application/json"
+
+http://localhost:5000/api/reviews/reviews/67947a4f5105162cb3cbe140
