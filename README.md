@@ -48,7 +48,7 @@
 
 | Home Feed | Recipe View | Profile |
 |-----------|-------------|---------|
-| ![Home](https://raw.githubusercontent.com/aaditya7788/MealMate/main/screenshots/homescreen.jpg) | ![Recipe](https://raw.githubusercontent.com/aaditya7788/MealMate/main/screenshots/recipe.jpg) | ![Profile](https://raw.githubusercontent.com/aaditya7788/MealMate/main/screenshots/profile.jpg) |
+| ![Home](https://raw.githubusercontent.com/aaditya7788/MealMate/main/screenshots/homescreen.jpg) | ![Recipe](https://raw.githubusercontent.com/aaditya7788/MealMate/main/screenshots/recipe.jpg) | ![Profile](https://raw.githubusercontent.com/aaditya7788/MealMate/main/screenshots/profile.jpg) | ![Notfication & Mealplanner](https://raw.githubusercontent.com/aaditya7788/MealMate/main/screenshots/notfication.jpg) 
 
 > 🌟 More coming soon – dark mode, meal planner UI, & onboarding screens!
 
