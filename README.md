@@ -26,7 +26,7 @@
 - 🤝 **Follow Foodies** – Like, comment, follow, and engage with fellow chefs.
 - 🧾 **Nutrition Goals** – Calorie and macro tracking for your fitness journey.
 - 📲 **Realtime Notifications** – Stay updated with likes, comments, and activity.
-- 🔒 **Secure Auth** – Firebase login, JWT protection, and privacy control.
+- 🔒 **Secure Auth** –  login, JWT protection, and privacy control.
 
 ---
 
@@ -37,10 +37,10 @@
 | Frontend       | React Native (Expo)               |
 | Backend        | Node.js + Express.js              |
 | Database       | MongoDB                           |
-| Auth/Storage   | Firebase (Auth, Cloud Storage)    |
+| Auth/Storage   | MongoDB (Auth, Cloud Storage)    |
 | State Mgmt     | Redux                             |
 | API            | [TheMealDB API](https://www.themealdb.com/api.php) |
-| Tools          | VS Code, GitHub, Postman, Firebase CLI |
+| Tools          | VS Code, GitHub, Postman |
 
 ---
 
@@ -61,7 +61,7 @@
 - Node.js ≥ 14
 - Expo CLI (`npm install -g expo-cli`)
 - MongoDB (local or Atlas)
-- Firebase project with Auth + Storage
+- MongoDB project with Auth + Storage
 
 ### 🖥️ Backend Setup
 
@@ -81,7 +81,7 @@ npm install
 npx expo start
 ```
 
-> 🔑 Don’t forget to add your `.env` files for Firebase keys and MongoDB URIs.
+> 🔑 Don’t forget to add your `.env` files MongoDB URIs.
 
 ---
 
@@ -95,7 +95,7 @@ npx expo start
 ## 🛡️ Security Features
 
 - 🔐 JWT-based user sessions
-- 🔑 Firebase Authentication (social/email)
+- 🔑  Authentication (email)
 - 🧼 Input sanitization and data validation
 - 🕵️‍♂️ Role-based admin access and content moderation
 
