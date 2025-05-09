@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/aaditya7788/MealMate/main/assets/icon.png" alt="MealMate Banner" width="100%" />
+  <img src="https://raw.githubusercontent.com/aaditya7788/MealMate/main/assets/icon.png" alt="MealMate Banner" width="30 height="30" />
 </p>
 
 <h1 align="center">🍽️ MealMate</h1>
