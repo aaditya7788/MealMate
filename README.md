@@ -1,96 +1,124 @@
 
----
 
 ````md
-# MealMate 🍽️
+# 🍽️ MealMate
 
-MealMate is a cutting-edge social mobile application that combines recipe sharing, intelligent meal planning, and social networking — built using React Native (Expo), Firebase, and Node.js.
+MealMate is a modern **social recipe and meal-planning app** that merges intelligent nutrition planning with vibrant community interaction. Built using **React Native (Expo)**, **Node.js**, **MongoDB**, and **Firebase**, it helps users share, discover, and plan meals — all in one platform.
 
-## 📱 Features
+---
 
-- 🧑‍🍳 **Recipe Sharing**: Users can upload, explore, and favorite recipes with ingredients, steps, and photos.
-- 🗓️ **Meal Planning**: Drag-and-drop calendar for personalized weekly/monthly plans.
-- 🍱 **Nutrition Tracking**: Calculate calories, macronutrients, and align meals with dietary goals.
-- 🤝 **Social Features**: Follow other users, like and comment on meals, and share your kitchen creations.
-- 🛒 **Ingredient Management**: Smart shopping lists and pantry tracking.
-- 🔍 **Recipe Discovery**: Advanced search with filters (cuisine, diet, time, etc.) and personalized recommendations.
-- 🔔 **Notifications**: Get alerts on interactions, meals, and new content.
-- 🛡️ **Secure Auth**: Firebase Authentication with support for social login.
+## 🚀 Features
+
+- 🧑‍🍳 **Recipe Sharing** – Upload, explore, favorite, and review recipes.
+- 📅 **Meal Planning** – Drag-and-drop planner with nutrition tracking.
+- 👥 **Social Networking** – Follow users, like and comment on meals.
+- 🔔 **Smart Notifications** – Stay updated with real-time alerts.
+- 🛡️ **Secure Auth** – Firebase login with full privacy controls.
+- 🛒 **Smart Grocery Lists** – Auto-generate lists from your meal plans.
+- 🍱 **Personalized Suggestions** – Get AI-driven meal recommendations.
+
+---
 
 ## 🛠️ Tech Stack
 
-| Layer         | Technology                 |
-|--------------|----------------------------|
-| Frontend     | React Native (Expo)        |
-| Backend      | Node.js + Express.js       |
-| Database     | Firebase Firestore         |
-| Auth & Storage| Firebase Authentication & Cloud Storage |
-| State Mgmt   | Redux                      |
-| External API | [TheMealDB API](https://www.themealdb.com/api.php) |
-| Dev Tools    | GitHub, VS Code, Postman, Firebase CLI |
+| Layer          | Technology                    |
+|----------------|-------------------------------|
+| Frontend       | React Native (Expo)           |
+| Backend        | Node.js + Express.js          |
+| Database       | MongoDB                       |
+| Auth & Storage | Firebase Authentication, Cloud Storage |
+| State Mgmt     | Redux                         |
+| External API   | [TheMealDB API](https://www.themealdb.com/api.php) |
+| Dev Tools      | GitHub, VS Code, Postman, Firebase CLI |
+
+---
 
 ## 🧩 Screenshots
 
 | Home Feed | Recipe Detail | Profile |
 |-----------|---------------|---------|
-| ![Home](screenshots/homescreen.jpg) | ![Recipe](screenshots/recipe.jpg) | ![Profile](screenshots/profile.jpg) |
+| ![Home](https://raw.githubusercontent.com/aaditya7788/MealMate/main/screenshots/homescreen.jpg) | ![Recipe](https://raw.githubusercontent.com/aaditya7788/MealMate/main/screenshots/recipe.jpg) | ![Profile](https://raw.githubusercontent.com/aaditya7788/MealMate/main/screenshots/profile.jpg) |
 
-> Add actual screenshots to the `screenshots/` folder.
+> Make sure these image files exist in your GitHub repo under `/screenshots`.
+
+---
 
 ## 📦 Installation
 
-### Prerequisites
+### 🔧 Prerequisites
 
 - Node.js ≥ 14
-- Expo CLI
-- Firebase Project (setup Firestore, Auth, Storage)
+- Expo CLI (`npm install -g expo-cli`)
+- MongoDB running locally or via cloud
+- Firebase Project (Auth + Storage enabled)
 
-### Run Locally
+### 🧪 Run Locally
 
-```bash
-git clone https://github.com/aaditya7788/MealMate.git
-cd MealMate_server
-npm run dev
-````
-
-#Open new terminal
-
+#### 1. Clone Backend & Start Server
 
 ```bash
 git clone https://github.com/aaditya7788/MealMate.git
 cd MealMate_server
+npm install
 npm run dev
 ````
 
-### Backend
+#### 2. Clone Frontend & Launch Expo
 
-Configure functions and database rules as per `/functions/`.
+```bash
+cd ..
+cd MealMate_client
+npm install
+npx expo start
+```
 
-## 📥 Download App
+Make sure to set your `.env` files for both client and server (Firebase keys, MongoDB URI, etc.)
 
-APK (Android): [Click to Download](https://tinyurl.com/3skxk72b)
-iOS (via TestFlight): *Coming soon*
+---
 
-## 🛡️ Security
+## 📥 Download
 
-* Encrypted user data
-* Secure JWT authentication
-* Privacy settings and content moderation
+* 📱 [**Download Android APK**](https://tinyurl.com/3skxk72b)
+* 🍏 iOS (via TestFlight): *Coming Soon*
 
-## 🚀 Future Enhancements
+---
 
-* Offline access to recipes
-* Multilingual support
+## 🔐 Security Highlights
 
+* End-to-end encrypted user data
+* JWT-based secure session management
+* Firebase Auth integration
+* Rate-limiting & input validation
+* Role-based access (User/Admin)
+
+---
+
+## 🧠 Future Scope
+
+* 🧬 AI-powered meal suggestions
+* 🌍 Multilingual & regional support
+* 🛍️ Grocery API integrations (e.g., BigBasket, Amazon Fresh)
+* 📶 Offline recipe access
+* 🏆 Cooking challenges & gamification
+* 📈 Analytics for users (calorie & nutrition trends)
+
+---
 
 ## 👨‍💻 Authors
 
 * [Aaditya Sahani](https://github.com/aaditya7788)
 * [Binit Gupta](https://github.com/yourpartnergithub)
 
+---
+
 ## 📄 License
 
-This project is licensed under the MIT License.
+Licensed under the [MIT License](LICENSE).
 
 ---
+
+> ⭐ If you like the project, give it a star and follow for more cool updates!
+
+```
+
 
