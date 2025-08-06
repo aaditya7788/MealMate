@@ -87,7 +87,7 @@ npx expo start
 
 ## 📦 Download the App
 
-- 📥 **[Download Android APK](https://tinyurl.com/3skxk72b)**
+- 📥 **[Download Android APK](https://calm-gumption-f49a84.netlify.app/)**
 - 🍏 iOS (TestFlight): *Coming Soon!*
 
 ---
